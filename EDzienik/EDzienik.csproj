@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\" />
-    <Folder Include="DTOs\" />
+    <Folder Include="Controllers\" />
     <Folder Include="Data\" />
+    <Folder Include="DTOs\" />
     <Folder Include="Helpers\" />
     <Folder Include="Services\" />
   </ItemGroup>
