@@ -2,12 +2,7 @@
 
 namespace EDzienik.Entities;
 
-public enum EventType
-{
-    Announcement,
-    Exam,
-    Homework
-}
+public enum EventType { Announcement, Exam, Homework }
 
 public class SchoolEvent
 {
@@ -19,7 +14,7 @@ public class SchoolEvent
     [MaxLength(2000)]
     public string Content { get; set; } = string.Empty;
 
-    public DateTime Date { get; set; }
+    public long DateUnix { get; set; } 
     public EventType Type { get; set; }
 
     public int SchoolClassId { get; set; }

@@ -1,7 +1,6 @@
 ﻿using EDzienik.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EDzienik.Data;
 
@@ -22,55 +21,26 @@ public class AppDbContext : IdentityDbContext<User>
     {
         base.OnModelCreating(modelBuilder);
 
-        ConfigureSchedule(modelBuilder);
-        ConfigureUsers(modelBuilder);
-        ConfigureDictionaryTables(modelBuilder);
-        ConfigureGrades(modelBuilder);
-        ConfigureEvents(modelBuilder);
-    }
-
-    private static void ConfigureSchedule(ModelBuilder modelBuilder)
-    {
-        var timeSpanConverter = new TimeSpanToTicksConverter();
-
-        modelBuilder.Entity<ScheduleSlot>()
-            .Property(x => x.StartTime)
-            .HasConversion(timeSpanConverter);
-
-        modelBuilder.Entity<ScheduleSlot>()
-            .Property(x => x.EndTime)
-            .HasConversion(timeSpanConverter);
-    }
-
-    private static void ConfigureUsers(ModelBuilder modelBuilder)
-    {
         modelBuilder.Entity<User>()
             .HasIndex(x => x.NormalizedEmail)
             .IsUnique();
 
         modelBuilder.Entity<Student>()
-            .HasIndex(x => x.UserId)
-            .IsUnique();
+            .HasIndex(x => x.UserId).IsUnique();
 
         modelBuilder.Entity<Student>()
             .HasOne(x => x.User)
             .WithOne(u => u.Student)
-            .HasForeignKey<Student>(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey<Student>(x => x.UserId);
 
         modelBuilder.Entity<Teacher>()
-            .HasIndex(x => x.UserId)
-            .IsUnique();
+            .HasIndex(x => x.UserId).IsUnique();
 
         modelBuilder.Entity<Teacher>()
             .HasOne(x => x.User)
             .WithOne(u => u.Teacher)
-            .HasForeignKey<Teacher>(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
+            .HasForeignKey<Teacher>(x => x.UserId);
 
-    private static void ConfigureDictionaryTables(ModelBuilder modelBuilder)
-    {
         modelBuilder.Entity<SchoolClass>()
             .HasIndex(x => new { x.Name, x.SchoolYear })
             .IsUnique();
@@ -82,36 +52,15 @@ public class AppDbContext : IdentityDbContext<User>
         modelBuilder.Entity<SubjectAssignment>()
             .HasIndex(x => new { x.TeacherId, x.SubjectId, x.SchoolClassId })
             .IsUnique();
-    }
 
-    private static void ConfigureGrades(ModelBuilder modelBuilder)
-    {
         modelBuilder.Entity<Grade>()
             .HasOne(x => x.Student)
             .WithMany(s => s.Grades)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Grade>()
-            .HasOne(x => x.Teacher)
-            .WithMany(t => t.Grades)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<Grade>()
-            .HasOne(x => x.Subject)
-            .WithMany(s => s.Grades)
-            .OnDelete(DeleteBehavior.Restrict);
-    }
-
-    private static void ConfigureEvents(ModelBuilder modelBuilder)
-    {
         modelBuilder.Entity<SchoolEvent>()
             .HasOne(x => x.SchoolClass)
             .WithMany(c => c.SchoolEvents)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<SchoolEvent>()
-            .HasOne(x => x.Teacher)
-            .WithMany(t => t.SchoolEvents)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

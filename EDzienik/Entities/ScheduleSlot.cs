@@ -1,25 +1,22 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace EDzienik.Entities;
 
-namespace EDzienik.Entities
+public class ScheduleSlot
 {
-    public class ScheduleSlot
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public DayOfWeek DayOfWeek { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+    public DayOfWeek DayOfWeek { get; set; }
 
-        [MaxLength(20)]
-        public string Room { get; set; } = string.Empty;
+    public long StartUnix { get; set; }
+    public long EndUnix { get; set; }
 
-        public int SchoolClassId { get; set; }
-        public virtual SchoolClass SchoolClass { get; set; } = null!;
+    public string Room { get; set; } = string.Empty;
 
-        public int SubjectId { get; set; }
-        public virtual Subject Subject { get; set; } = null!;
+    public int SchoolClassId { get; set; }
+    public SchoolClass SchoolClass { get; set; } = null!;
 
-        public int TeacherId { get; set; }
-        public virtual Teacher Teacher { get; set; } = null!;
-    }
+    public int SubjectId { get; set; }
+    public Subject Subject { get; set; } = null!;
+
+    public int TeacherId { get; set; }
+    public Teacher Teacher { get; set; } = null!;
 }
