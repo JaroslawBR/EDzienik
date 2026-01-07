@@ -1,19 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Claims;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace EDzienik.Entities
 {
     public class Student
     {
         public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
 
-        [ForeignKey("UserId")]
+        [Required]
+        public string UserId { get; set; } = string.Empty;
         public virtual User User { get; set; } = null!;
 
-        public int ClassId { get; set; }
+        public int SchoolClassId { get; set; }
+        public virtual SchoolClass SchoolClass { get; set; } = null!;
 
-        [ForeignKey("ClassId")]
-        public virtual SchoolClass Class { get; set; } = null!;
+        public virtual List<Grade> Grades { get; set; } = new();
     }
 }

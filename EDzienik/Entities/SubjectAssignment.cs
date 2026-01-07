@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace EDzienik.Entities
+﻿namespace EDzienik.Entities
 {
     public class SubjectAssignment
     {
@@ -12,9 +10,7 @@ namespace EDzienik.Entities
         public int SubjectId { get; set; }
         public virtual Subject Subject { get; set; } = null!;
 
-        public int ClassId { get; set; }
-
-        [ForeignKey("ClassId")]
-        public virtual SchoolClass Class { get; set; } = null!;
+        public int SchoolClassId { get; set; }
+        public virtual SchoolClass SchoolClass { get; set; } = null!;
     }
 }

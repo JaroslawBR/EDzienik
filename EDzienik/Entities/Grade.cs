@@ -1,10 +1,17 @@
-﻿namespace EDzienik.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EDzienik.Entities
 {
     public class Grade
     {
         public int Id { get; set; }
+
+        [Range(1, 6)]
         public int Value { get; set; } 
-        public string Description { get; set; } = string.Empty; 
+
+        [MaxLength(200)]
+        public string Description { get; set; } = string.Empty;
+
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         public int StudentId { get; set; }
