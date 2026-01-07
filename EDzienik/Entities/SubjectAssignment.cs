@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EDzienik.Entities
 {
@@ -13,6 +13,8 @@ namespace EDzienik.Entities
         public virtual Subject Subject { get; set; } = null!;
 
         public int ClassId { get; set; }
+
+        [ForeignKey("ClassId")]
         public virtual SchoolClass Class { get; set; } = null!;
     }
 }

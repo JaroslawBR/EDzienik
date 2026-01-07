@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EDzienik.Entities
 {
@@ -6,12 +6,14 @@ namespace EDzienik.Entities
     {
         public int Id { get; set; }
 
-        public DayOfWeek DayOfWeek { get; set; } 
+        public DayOfWeek DayOfWeek { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public string Room { get; set; } = string.Empty;
 
         public int ClassId { get; set; }
+
+        [ForeignKey("ClassId")]
         public virtual SchoolClass Class { get; set; } = null!;
 
         public int SubjectId { get; set; }
