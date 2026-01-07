@@ -12,7 +12,7 @@ namespace EDzienik.Entities
         public string Room { get; set; } = string.Empty;
 
         public int ClassId { get; set; }
-        public virtual Class Class { get; set; } = null!;
+        public virtual SchoolClass Class { get; set; } = null!;
 
         public int SubjectId { get; set; }
         public virtual Subject Subject { get; set; } = null!;

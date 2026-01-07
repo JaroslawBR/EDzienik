@@ -13,6 +13,6 @@ namespace EDzienik.Entities
         public virtual Subject Subject { get; set; } = null!;
 
         public int ClassId { get; set; }
-        public virtual Class Class { get; set; } = null!;
+        public virtual SchoolClass Class { get; set; } = null!;
     }
 }
