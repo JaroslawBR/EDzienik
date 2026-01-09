@@ -1,60 +1,63 @@
-﻿@model EDzienik.Entities.ScheduleSlot
+﻿@model EDzienik.Models.ScheduleSlotViewModel
 
 @{
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<h1>Dodaj zajęcia do planu</h1>
 
-<h4>ScheduleSlot</h4>
-<hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="DayOfWeek" class="control-label"></label>
-                <select asp-for="DayOfWeek" class="form-control"></select>
+                <select asp-for="DayOfWeek" class="form-control" asp-items="Html.GetEnumSelectList<DayOfWeek>()"></select>
                 <span asp-validation-for="DayOfWeek" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="StartUnix" class="control-label"></label>
-                <input asp-for="StartUnix" class="form-control" />
-                <span asp-validation-for="StartUnix" class="text-danger"></span>
+                <label asp-for="StartTime" class="control-label">Godzina rozpoczęcia</label>
+                <input asp-for="StartTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="EndUnix" class="control-label"></label>
-                <input asp-for="EndUnix" class="form-control" />
-                <span asp-validation-for="EndUnix" class="text-danger"></span>
+                <label asp-for="EndTime" class="control-label">Godzina zakończenia</label>
+                <input asp-for="EndTime" class="form-control" type="datetime-local" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Room" class="control-label"></label>
                 <input asp-for="Room" class="form-control" />
                 <span asp-validation-for="Room" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="SchoolClassId" class="control-label"></label>
-                <select asp-for="SchoolClassId" class ="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
             </div>
             <div class="form-group">
                 <label asp-for="SubjectId" class="control-label"></label>
-                <select asp-for="SubjectId" class ="form-control" asp-items="ViewBag.SubjectId"></select>
+                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
             </div>
+
+            <br />
             <div class="form-group">
-                <label asp-for="TeacherId" class="control-label"></label>
-                <select asp-for="TeacherId" class ="form-control" asp-items="ViewBag.TeacherId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Dodaj do planu" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Powrót do listy</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

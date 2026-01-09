@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
+using EDzienik.Models;
 
 namespace EDzienik.Controllers
 {
@@ -52,44 +53,56 @@ namespace EDzienik.Controllers
         {
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
             return View();
         }
 
         // POST: ScheduleSlots/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
+        public async Task<IActionResult> Create(ScheduleSlotViewModel model) // Przyjmujemy ViewModel
         {
-            // 1. Walidacja czasu
-            if (scheduleSlot.EndUnix <= scheduleSlot.StartUnix)
+            if (model.EndTime <= model.StartTime)
             {
-                ModelState.AddModelError("EndUnix", "Zajęcia muszą kończyć się później niż zaczynają.");
+                ModelState.AddModelError("EndTime", "Zajęcia muszą kończyć się później niż zaczynają.");
             }
+
+            // Konwersja ViewModel -> Entity
+            var scheduleSlot = new ScheduleSlot
+            {
+                DayOfWeek = model.DayOfWeek,
+                Room = model.Room,
+                SchoolClassId = model.SchoolClassId,
+                SubjectId = model.SubjectId,
+
+                // Przeliczenie DateTime na Unix Timestamp
+                StartUnix = ((DateTimeOffset)model.StartTime).ToUnixTimeSeconds(),
+                EndUnix = ((DateTimeOffset)model.EndTime).ToUnixTimeSeconds(),
+
+                // HARDCODED TEACHER ID (Tryb testowy taki sam jak w Grades)
+                TeacherId = 1
+            };
 
             if (ModelState.IsValid)
             {
-                // 2. Pobieramy inne zajęcia z tego samego dnia, żeby sprawdzić kolizje
+                // Walidacja konfliktów (ta, którą już miałeś, ale dostosowana do nowego obiektu)
                 var conflicts = await _context.ScheduleSlots
                     .Where(s => s.DayOfWeek == scheduleSlot.DayOfWeek)
                     .ToListAsync();
 
                 foreach (var slot in conflicts)
                 {
-                    // Sprawdzamy czy przedziały czasowe się nakładają
                     bool overlap = (scheduleSlot.StartUnix < slot.EndUnix) && (scheduleSlot.EndUnix > slot.StartUnix);
-
                     if (overlap)
                     {
-                        if (slot.TeacherId == scheduleSlot.TeacherId)
-                            ModelState.AddModelError("TeacherId", "Ten nauczyciel prowadzi już zajęcia w tym czasie.");
+                        // Tutaj sprawdzamy TeacherId=1 "na sztywno" bo taki przypisujemy
+                        if (slot.TeacherId == 1)
+                            ModelState.AddModelError("", "Masz już zajęcia w tym czasie!");
 
                         if (slot.SchoolClassId == scheduleSlot.SchoolClassId)
                             ModelState.AddModelError("SchoolClassId", "Ta klasa ma już zajęcia w tym czasie.");
 
-                        // Opcjonalne: sprawdzanie sali (jeśli została wpisana)
                         if (!string.IsNullOrEmpty(scheduleSlot.Room) && scheduleSlot.Room == slot.Room)
-                            ModelState.AddModelError("Room", $"Sala {slot.Room} jest w tym czasie zajęta.");
+                            ModelState.AddModelError("Room", $"Sala {slot.Room} jest zajęta.");
                     }
                 }
             }
@@ -101,10 +114,10 @@ namespace EDzienik.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
-            return View(scheduleSlot);
+            // Jeśli błąd, przywracamy listy rozwijane
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", model.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", model.SubjectId);
+            return View(model);
         }
 
         // GET: ScheduleSlots/Edit/5
