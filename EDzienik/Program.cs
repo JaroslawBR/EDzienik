@@ -2,6 +2,8 @@ using EDzienik.Data;
 using EDzienik.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,11 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+     .AddJsonOptions(opt =>
+     {
+         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+     });
 
 builder.Services.AddRazorPages();
 
