@@ -57,18 +57,50 @@ namespace EDzienik.Controllers
         }
 
         // POST: ScheduleSlots/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
         {
+            // 1. Walidacja czasu
+            if (scheduleSlot.EndUnix <= scheduleSlot.StartUnix)
+            {
+                ModelState.AddModelError("EndUnix", "Zajęcia muszą kończyć się później niż zaczynają.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                // 2. Pobieramy inne zajęcia z tego samego dnia, żeby sprawdzić kolizje
+                var conflicts = await _context.ScheduleSlots
+                    .Where(s => s.DayOfWeek == scheduleSlot.DayOfWeek)
+                    .ToListAsync();
+
+                foreach (var slot in conflicts)
+                {
+                    // Sprawdzamy czy przedziały czasowe się nakładają
+                    bool overlap = (scheduleSlot.StartUnix < slot.EndUnix) && (scheduleSlot.EndUnix > slot.StartUnix);
+
+                    if (overlap)
+                    {
+                        if (slot.TeacherId == scheduleSlot.TeacherId)
+                            ModelState.AddModelError("TeacherId", "Ten nauczyciel prowadzi już zajęcia w tym czasie.");
+
+                        if (slot.SchoolClassId == scheduleSlot.SchoolClassId)
+                            ModelState.AddModelError("SchoolClassId", "Ta klasa ma już zajęcia w tym czasie.");
+
+                        // Opcjonalne: sprawdzanie sali (jeśli została wpisana)
+                        if (!string.IsNullOrEmpty(scheduleSlot.Room) && scheduleSlot.Room == slot.Room)
+                            ModelState.AddModelError("Room", $"Sala {slot.Room} jest w tym czasie zajęta.");
+                    }
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(scheduleSlot);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
@@ -95,15 +127,34 @@ namespace EDzienik.Controllers
         }
 
         // POST: ScheduleSlots/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
         {
-            if (id != scheduleSlot.Id)
+            if (id != scheduleSlot.Id) return NotFound();
+
+            if (scheduleSlot.EndUnix <= scheduleSlot.StartUnix)
+                ModelState.AddModelError("EndUnix", "Koniec musi być po początku.");
+
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                var conflicts = await _context.ScheduleSlots
+                    .Where(s => s.DayOfWeek == scheduleSlot.DayOfWeek && s.Id != id)
+                    .ToListAsync();
+
+                foreach (var slot in conflicts)
+                {
+                    bool overlap = (scheduleSlot.StartUnix < slot.EndUnix) && (scheduleSlot.EndUnix > slot.StartUnix);
+                    if (overlap)
+                    {
+                        if (slot.TeacherId == scheduleSlot.TeacherId)
+                            ModelState.AddModelError("TeacherId", "Ten nauczyciel jest zajęty.");
+                        if (slot.SchoolClassId == scheduleSlot.SchoolClassId)
+                            ModelState.AddModelError("SchoolClassId", "Ta klasa jest zajęta.");
+                        if (!string.IsNullOrEmpty(scheduleSlot.Room) && scheduleSlot.Room == slot.Room)
+                            ModelState.AddModelError("Room", "Sala jest zajęta.");
+                    }
+                }
             }
 
             if (ModelState.IsValid)
@@ -115,17 +166,12 @@ namespace EDzienik.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ScheduleSlotExists(scheduleSlot.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!ScheduleSlotExists(scheduleSlot.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);

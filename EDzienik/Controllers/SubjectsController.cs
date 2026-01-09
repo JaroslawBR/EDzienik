@@ -56,6 +56,11 @@ namespace EDzienik.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Subject subject)
         {
+            if (await _context.Subjects.AnyAsync(s => s.Name == subject.Name))
+            {
+                ModelState.AddModelError("Name", "Przedmiot o takiej nazwie już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(subject);

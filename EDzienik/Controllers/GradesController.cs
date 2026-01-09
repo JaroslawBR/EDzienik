@@ -61,14 +61,22 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Value,Description,CreatedUnix,StudentId,SubjectId,TeacherId")] Grade grade)
+        public async Task<IActionResult> Create([Bind("Id,Value,Description,StudentId,SubjectId,TeacherId")] Grade grade)
         {
+            grade.CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            if (grade.Value < 1 || grade.Value > 6)
+            {
+                ModelState.AddModelError("Value", "Ocena musi być w zakresie 1-6.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(grade);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId", grade.StudentId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);

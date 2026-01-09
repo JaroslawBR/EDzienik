@@ -63,6 +63,17 @@ namespace EDzienik.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
         {
+            bool exists = await _context.SubjectAssignments.AnyAsync(s =>
+                s.TeacherId == subjectAssignment.TeacherId &&
+                s.SubjectId == subjectAssignment.SubjectId &&
+                s.SchoolClassId == subjectAssignment.SchoolClassId
+            );
+
+            if (exists)
+            {
+                ModelState.AddModelError("", "Takie przypisanie już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(subjectAssignment);
