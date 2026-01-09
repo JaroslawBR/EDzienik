@@ -14,7 +14,8 @@ public class SchoolEvent
     [MaxLength(2000)]
     public string Content { get; set; } = string.Empty;
 
-    public long DateUnix { get; set; } 
+    public DateTime Date { get; set; }
+
     public EventType Type { get; set; }
 
     public int SchoolClassId { get; set; }
