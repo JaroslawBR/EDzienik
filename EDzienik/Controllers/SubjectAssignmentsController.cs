@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
 
 namespace EDzienik.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SubjectAssignmentsController : ControllerBase
+    public class SubjectAssignmentsController : Controller
     {
         private readonly AppDbContext _context;
 
@@ -21,83 +19,153 @@ namespace EDzienik.Controllers
             _context = context;
         }
 
-        // GET: api/SubjectAssignments
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SubjectAssignment>>> GetSubjectAssignments()
+        // GET: SubjectAssignments
+        public async Task<IActionResult> Index()
         {
-            return await _context.SubjectAssignments.ToListAsync();
+            var appDbContext = _context.SubjectAssignments.Include(s => s.SchoolClass).Include(s => s.Subject).Include(s => s.Teacher);
+            return View(await appDbContext.ToListAsync());
         }
 
-        // GET: api/SubjectAssignments/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SubjectAssignment>> GetSubjectAssignment(int id)
+        // GET: SubjectAssignments/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            var subjectAssignment = await _context.SubjectAssignments.FindAsync(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var subjectAssignment = await _context.SubjectAssignments
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (subjectAssignment == null)
             {
                 return NotFound();
             }
 
-            return subjectAssignment;
+            return View(subjectAssignment);
         }
 
-        // PUT: api/SubjectAssignments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSubjectAssignment(int id, SubjectAssignment subjectAssignment)
+        // GET: SubjectAssignments/Create
+        public IActionResult Create()
+        {
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
+            return View();
+        }
+
+        // POST: SubjectAssignments/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(subjectAssignment);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+            return View(subjectAssignment);
+        }
+
+        // GET: SubjectAssignments/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var subjectAssignment = await _context.SubjectAssignments.FindAsync(id);
+            if (subjectAssignment == null)
+            {
+                return NotFound();
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+            return View(subjectAssignment);
+        }
+
+        // POST: SubjectAssignments/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
         {
             if (id != subjectAssignment.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(subjectAssignment).State = EntityState.Modified;
-
-            try
+            if (ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SubjectAssignmentExists(id))
+                try
                 {
-                    return NotFound();
+                    _context.Update(subjectAssignment);
+                    await _context.SaveChangesAsync();
                 }
-                else
+                catch (DbUpdateConcurrencyException)
                 {
-                    throw;
+                    if (!SubjectAssignmentExists(subjectAssignment.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
+                return RedirectToAction(nameof(Index));
             }
-
-            return NoContent();
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+            return View(subjectAssignment);
         }
 
-        // POST: api/SubjectAssignments
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<SubjectAssignment>> PostSubjectAssignment(SubjectAssignment subjectAssignment)
+        // GET: SubjectAssignments/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            _context.SubjectAssignments.Add(subjectAssignment);
-            await _context.SaveChangesAsync();
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            return CreatedAtAction("GetSubjectAssignment", new { id = subjectAssignment.Id }, subjectAssignment);
-        }
-
-        // DELETE: api/SubjectAssignments/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSubjectAssignment(int id)
-        {
-            var subjectAssignment = await _context.SubjectAssignments.FindAsync(id);
+            var subjectAssignment = await _context.SubjectAssignments
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (subjectAssignment == null)
             {
                 return NotFound();
             }
 
-            _context.SubjectAssignments.Remove(subjectAssignment);
-            await _context.SaveChangesAsync();
+            return View(subjectAssignment);
+        }
 
-            return NoContent();
+        // POST: SubjectAssignments/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var subjectAssignment = await _context.SubjectAssignments.FindAsync(id);
+            if (subjectAssignment != null)
+            {
+                _context.SubjectAssignments.Remove(subjectAssignment);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         private bool SubjectAssignmentExists(int id)

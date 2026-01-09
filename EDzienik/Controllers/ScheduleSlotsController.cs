@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
 
 namespace EDzienik.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ScheduleSlotsController : ControllerBase
+    public class ScheduleSlotsController : Controller
     {
         private readonly AppDbContext _context;
 
@@ -21,83 +19,153 @@ namespace EDzienik.Controllers
             _context = context;
         }
 
-        // GET: api/ScheduleSlots
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ScheduleSlot>>> GetScheduleSlots()
+        // GET: ScheduleSlots
+        public async Task<IActionResult> Index()
         {
-            return await _context.ScheduleSlots.ToListAsync();
+            var appDbContext = _context.ScheduleSlots.Include(s => s.SchoolClass).Include(s => s.Subject).Include(s => s.Teacher);
+            return View(await appDbContext.ToListAsync());
         }
 
-        // GET: api/ScheduleSlots/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ScheduleSlot>> GetScheduleSlot(int id)
+        // GET: ScheduleSlots/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            var scheduleSlot = await _context.ScheduleSlots.FindAsync(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var scheduleSlot = await _context.ScheduleSlots
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (scheduleSlot == null)
             {
                 return NotFound();
             }
 
-            return scheduleSlot;
+            return View(scheduleSlot);
         }
 
-        // PUT: api/ScheduleSlots/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutScheduleSlot(int id, ScheduleSlot scheduleSlot)
+        // GET: ScheduleSlots/Create
+        public IActionResult Create()
+        {
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
+            return View();
+        }
+
+        // POST: ScheduleSlots/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(scheduleSlot);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
+            return View(scheduleSlot);
+        }
+
+        // GET: ScheduleSlots/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var scheduleSlot = await _context.ScheduleSlots.FindAsync(id);
+            if (scheduleSlot == null)
+            {
+                return NotFound();
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
+            return View(scheduleSlot);
+        }
+
+        // POST: ScheduleSlots/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
         {
             if (id != scheduleSlot.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(scheduleSlot).State = EntityState.Modified;
-
-            try
+            if (ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ScheduleSlotExists(id))
+                try
                 {
-                    return NotFound();
+                    _context.Update(scheduleSlot);
+                    await _context.SaveChangesAsync();
                 }
-                else
+                catch (DbUpdateConcurrencyException)
                 {
-                    throw;
+                    if (!ScheduleSlotExists(scheduleSlot.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
+                return RedirectToAction(nameof(Index));
             }
-
-            return NoContent();
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
+            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
+            return View(scheduleSlot);
         }
 
-        // POST: api/ScheduleSlots
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ScheduleSlot>> PostScheduleSlot(ScheduleSlot scheduleSlot)
+        // GET: ScheduleSlots/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            _context.ScheduleSlots.Add(scheduleSlot);
-            await _context.SaveChangesAsync();
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            return CreatedAtAction("GetScheduleSlot", new { id = scheduleSlot.Id }, scheduleSlot);
-        }
-
-        // DELETE: api/ScheduleSlots/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteScheduleSlot(int id)
-        {
-            var scheduleSlot = await _context.ScheduleSlots.FindAsync(id);
+            var scheduleSlot = await _context.ScheduleSlots
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (scheduleSlot == null)
             {
                 return NotFound();
             }
 
-            _context.ScheduleSlots.Remove(scheduleSlot);
-            await _context.SaveChangesAsync();
+            return View(scheduleSlot);
+        }
 
-            return NoContent();
+        // POST: ScheduleSlots/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var scheduleSlot = await _context.ScheduleSlots.FindAsync(id);
+            if (scheduleSlot != null)
+            {
+                _context.ScheduleSlots.Remove(scheduleSlot);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         private bool ScheduleSlotExists(int id)

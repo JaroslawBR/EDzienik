@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
 
 namespace EDzienik.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SchoolEventsController : ControllerBase
+    public class SchoolEventsController : Controller
     {
         private readonly AppDbContext _context;
 
@@ -21,83 +19,147 @@ namespace EDzienik.Controllers
             _context = context;
         }
 
-        // GET: api/SchoolEvents
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SchoolEvent>>> GetSchoolEvents()
+        // GET: SchoolEvents
+        public async Task<IActionResult> Index()
         {
-            return await _context.SchoolEvents.ToListAsync();
+            var appDbContext = _context.SchoolEvents.Include(s => s.SchoolClass).Include(s => s.Teacher);
+            return View(await appDbContext.ToListAsync());
         }
 
-        // GET: api/SchoolEvents/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<SchoolEvent>> GetSchoolEvent(int id)
+        // GET: SchoolEvents/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            var schoolEvent = await _context.SchoolEvents.FindAsync(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var schoolEvent = await _context.SchoolEvents
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (schoolEvent == null)
             {
                 return NotFound();
             }
 
-            return schoolEvent;
+            return View(schoolEvent);
         }
 
-        // PUT: api/SchoolEvents/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSchoolEvent(int id, SchoolEvent schoolEvent)
+        // GET: SchoolEvents/Create
+        public IActionResult Create()
+        {
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
+            return View();
+        }
+
+        // POST: SchoolEvents/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,Title,Content,Date,Type,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(schoolEvent);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+            return View(schoolEvent);
+        }
+
+        // GET: SchoolEvents/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var schoolEvent = await _context.SchoolEvents.FindAsync(id);
+            if (schoolEvent == null)
+            {
+                return NotFound();
+            }
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+            return View(schoolEvent);
+        }
+
+        // POST: SchoolEvents/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Content,Date,Type,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
         {
             if (id != schoolEvent.Id)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(schoolEvent).State = EntityState.Modified;
-
-            try
+            if (ModelState.IsValid)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SchoolEventExists(id))
+                try
                 {
-                    return NotFound();
+                    _context.Update(schoolEvent);
+                    await _context.SaveChangesAsync();
                 }
-                else
+                catch (DbUpdateConcurrencyException)
                 {
-                    throw;
+                    if (!SchoolEventExists(schoolEvent.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
+                return RedirectToAction(nameof(Index));
             }
-
-            return NoContent();
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
+            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+            return View(schoolEvent);
         }
 
-        // POST: api/SchoolEvents
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<SchoolEvent>> PostSchoolEvent(SchoolEvent schoolEvent)
+        // GET: SchoolEvents/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            _context.SchoolEvents.Add(schoolEvent);
-            await _context.SaveChangesAsync();
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-            return CreatedAtAction("GetSchoolEvent", new { id = schoolEvent.Id }, schoolEvent);
-        }
-
-        // DELETE: api/SchoolEvents/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSchoolEvent(int id)
-        {
-            var schoolEvent = await _context.SchoolEvents.FindAsync(id);
+            var schoolEvent = await _context.SchoolEvents
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Teacher)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (schoolEvent == null)
             {
                 return NotFound();
             }
 
-            _context.SchoolEvents.Remove(schoolEvent);
-            await _context.SaveChangesAsync();
+            return View(schoolEvent);
+        }
 
-            return NoContent();
+        // POST: SchoolEvents/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var schoolEvent = await _context.SchoolEvents.FindAsync(id);
+            if (schoolEvent != null)
+            {
+                _context.SchoolEvents.Remove(schoolEvent);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         private bool SchoolEventExists(int id)
