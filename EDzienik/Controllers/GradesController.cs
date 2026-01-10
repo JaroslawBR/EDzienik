@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EDzienik.Controllers
 {
+
+    [Authorize]
     public class GradesController : Controller
     {
         private readonly AppDbContext _context;
@@ -22,37 +25,65 @@ namespace EDzienik.Controllers
         // GET: Grades
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.Grades.Include(g => g.Student).Include(g => g.Subject).Include(g => g.Teacher);
-            return View(await appDbContext.ToListAsync());
-        }
+            var teacher = await GetLoggedTeacherAsync();
+            var student = await GetLoggedStudentAsync();
 
-        // GET: Grades/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var grade = await _context.Grades
-                .Include(g => g.Student)
+            var query = _context.Grades
+                .Include(g => g.Student).ThenInclude(s => s.User)
                 .Include(g => g.Subject)
-                .Include(g => g.Teacher)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (grade == null)
+                .Include(g => g.Teacher).ThenInclude(t => t.User)
+                .AsQueryable();
+
+            if (teacher != null)
             {
-                return NotFound();
+                query = query.Where(g => g.TeacherId == teacher.Id);
+            }
+            else if (student != null)
+            {
+                query = query.Where(g => g.StudentId == student.Id);
             }
 
-            return View(grade);
+            return View(await query.OrderByDescending(g => g.CreatedUnix).ToListAsync());
         }
 
         // GET: Grades/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId");
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
+            var teacher = await GetLoggedTeacherAsync();
+            if (teacher == null)
+            {
+                return Content("Błąd: Tylko nauczyciel może wystawiać oceny (lub brak powiązania konta).");
+            }
+
+            var mySubjects = await _context.SubjectAssignments
+                .Where(sa => sa.TeacherId == teacher.Id)
+                .Include(sa => sa.Subject)
+                .Select(sa => sa.Subject)
+                .Distinct()
+                .ToListAsync();
+
+            var myClassIds = await _context.SubjectAssignments
+                .Where(sa => sa.TeacherId == teacher.Id)
+                .Select(sa => sa.SchoolClassId)
+                .Distinct()
+                .ToListAsync();
+
+            var myStudents = await _context.Students
+                .Include(s => s.User)
+                .Include(s => s.SchoolClass)
+                .Where(s => myClassIds.Contains(s.SchoolClassId))
+                .OrderBy(s => s.SchoolClass.Name)
+                .ThenBy(s => s.User.LastName)
+                .Select(s => new
+                {
+                    Id = s.Id,
+                    FullName = $"{s.User.LastName} {s.User.FirstName} (klasa {s.SchoolClass.Name})"
+                })
+                .ToListAsync();
+
+            ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name");
+            ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName");
+
             return View();
         }
 
@@ -61,13 +92,31 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Value,Description,StudentId,SubjectId,TeacherId")] Grade grade)
+        public async Task<IActionResult> Create([Bind("Value,Description,StudentId,SubjectId")] Grade grade)
         {
+            var teacher = await GetLoggedTeacherAsync();
+            if (teacher == null) return Forbid();
+
+            grade.TeacherId = teacher.Id;
             grade.CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            var student = await _context.Students.FindAsync(grade.StudentId);
+            if (student != null)
+            {
+                bool hasAssignment = await _context.SubjectAssignments.AnyAsync(sa =>
+                   sa.TeacherId == teacher.Id &&
+                   sa.SubjectId == grade.SubjectId &&
+                   sa.SchoolClassId == student.SchoolClassId);
+
+                if (!hasAssignment)
+                {
+                    ModelState.AddModelError("", "Nie masz przypisania do klasy tego ucznia z tego przedmiotu.");
+                }
+            }
 
             if (grade.Value < 1 || grade.Value > 6)
             {
-                ModelState.AddModelError("Value", "Ocena musi być w zakresie 1-6.");
+                ModelState.AddModelError("Value", "Ocena musi być z zakresu 1-6.");
             }
 
             if (ModelState.IsValid)
@@ -77,9 +126,24 @@ namespace EDzienik.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId", grade.StudentId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);
+            var mySubjects = await _context.SubjectAssignments
+                .Where(sa => sa.TeacherId == teacher.Id)
+                .Include(sa => sa.Subject)
+                .Select(sa => sa.Subject).Distinct().ToListAsync();
+
+            var myClassIds = await _context.SubjectAssignments
+                .Where(sa => sa.TeacherId == teacher.Id)
+                .Select(sa => sa.SchoolClassId).Distinct().ToListAsync();
+
+            var myStudents = await _context.Students
+                .Include(s => s.User).Include(s => s.SchoolClass)
+                .Where(s => myClassIds.Contains(s.SchoolClassId))
+                .Select(s => new { Id = s.Id, FullName = $"{s.User.LastName} {s.User.FirstName} ({s.SchoolClass.Name})" })
+                .ToListAsync();
+
+            ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name", grade.SubjectId);
+            ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName", grade.StudentId);
+
             return View(grade);
         }
 
@@ -180,5 +244,31 @@ namespace EDzienik.Controllers
         {
             return _context.Grades.Any(e => e.Id == id);
         }
+
+
+        // funkcje pomocnicze
+
+        private async Task<Teacher?> GetLoggedTeacherAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Teachers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.User.Email == userEmail);
+        }
+
+        private async Task<Student?> GetLoggedStudentAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Students
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.User.Email == userEmail);
+        }
+
     }
+
+
 }

@@ -1,55 +1,49 @@
 ﻿@model EDzienik.Entities.Grade
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Wystaw ocenę";
 }
 
-<h1>Create</h1>
+<h1>Wystaw ocenę</h1>
 
-<h4>Grade</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Value" class="control-label"></label>
-                <input asp-for="Value" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label class="control-label">Przedmiot</label>
+                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="control-label">Uczeń</label>
+                <select asp-for="StudentId" class="form-control" asp-items="ViewBag.StudentId"></select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Value" class="control-label">Ocena (1-6)</label>
+                <input asp-for="Value" type="number" min="1" max="6" class="form-control" />
                 <span asp-validation-for="Value" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label">Opis (np. Sprawdzian, Odpowiedź)</label>
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="CreatedUnix" class="control-label"></label>
-                <input asp-for="CreatedUnix" class="form-control" />
-                <span asp-validation-for="CreatedUnix" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StudentId" class="control-label"></label>
-                <select asp-for="StudentId" class ="form-control" asp-items="ViewBag.StudentId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubjectId" class="control-label"></label>
-                <select asp-for="SubjectId" class ="form-control" asp-items="ViewBag.SubjectId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TeacherId" class="control-label"></label>
-                <select asp-for="TeacherId" class ="form-control" asp-items="ViewBag.TeacherId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Wystaw" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Powrót</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
