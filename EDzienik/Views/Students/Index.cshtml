@@ -1,0 +1,40 @@
+﻿@model IEnumerable<EDzienik.Entities.Student>
+
+@{
+    ViewData["Title"] = "Lista uczniów";
+}
+
+<h1>Lista uczniów</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Dodaj ucznia</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Imię i Nazwisko</th>
+            <th>Email</th>
+            <th>Klasa</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.User.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.SchoolClass.Name)
+                </td>
+                <td>
+                    <span class="text-muted">Brak dodatkowych akcji</span>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

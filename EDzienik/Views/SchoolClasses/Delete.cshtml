@@ -1,0 +1,32 @@
+﻿@model EDzienik.Entities.SchoolClass
+
+@{
+    ViewData["Title"] = "Usuwanie klasy";
+}
+
+<h1>Usuwanie klasy</h1>
+
+<h3>Czy na pewno chcesz usunąć tę klasę?</h3>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Nazwa
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Rok szkolny
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SchoolYear)
+        </dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Usuń" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+    </form>
+</div>

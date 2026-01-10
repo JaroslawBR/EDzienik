@@ -1,0 +1,52 @@
+﻿@model IEnumerable<EDzienik.Controllers.UserRolesViewModel>
+
+@{
+    ViewData["Title"] = "Zarządzanie użytkownikami";
+}
+
+<h1>Zarządzanie użytkownikami</h1>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Imię</th>
+            <th>Nazwisko</th>
+            <th>Role</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.FirstName</td>
+                <td>@user.LastName</td>
+                <td>
+                    @if (user.Roles != null && user.Roles.Any())
+                    {
+                        @string.Join(", ", user.Roles)
+                    }
+                    else
+                    {
+                        <span class="text-muted">Brak ról</span>
+                    }
+                </td>
+                <td>
+                    @if (user.Roles != null && !user.Roles.Contains("Admin"))
+                    {
+                        <a asp-action="MakeAdmin" asp-route-userId="@user.UserId" class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Czy na pewno nadać uprawnienia Administratora?');">
+                            Nadaj Admina
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Administrator</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
