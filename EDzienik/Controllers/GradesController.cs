@@ -332,7 +332,7 @@ namespace EDzienik.Controllers
         }
 
 
-        // funkcje pomocnicze
+        //  funkcje pomocnicze
 
         private async Task<Teacher?> GetLoggedTeacherAsync()
         {

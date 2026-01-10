@@ -304,7 +304,7 @@ namespace EDzienik.Controllers
             return _context.SchoolEvents.Any(e => e.Id == id);
         }
 
-        //funckje pomocnicze
+        // funckje pomocnicze
 
         private async Task<Teacher?> GetLoggedTeacherAsync()
         {

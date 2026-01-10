@@ -275,7 +275,7 @@ namespace EDzienik.Controllers
             return _context.ScheduleSlots.Any(e => e.Id == id);
         }
 
-        //funkcje pomocnicze
+        // funkcje pomocnicze
 
         private async Task<Teacher?> GetLoggedTeacherAsync()
         {
