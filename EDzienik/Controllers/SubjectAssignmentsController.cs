@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EDzienik.Data;
 using EDzienik.Entities;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EDzienik.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class SubjectAssignmentsController : Controller
     {
         private readonly AppDbContext _context;

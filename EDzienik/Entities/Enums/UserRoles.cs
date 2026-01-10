@@ -2,6 +2,7 @@
 {
     public enum UserRoles
     {
+        Admin,
         Teacher,
         Student
     

@@ -1,9 +1,9 @@
 using EDzienik.Data;
 using EDzienik.Entities;
+using EDzienik.Entities.Enums;
+using EDzienik.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +13,9 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services
     .AddIdentity<User, IdentityRole>(options =>
     {
+        options.SignIn.RequireConfirmedAccount = false;
         options.Password.RequireNonAlphanumeric = false;
+        options.SignIn.RequireConfirmedAccount = false;
         options.Password.RequireUppercase = false;
         options.Password.RequireLowercase = false;
         options.Password.RequireDigit = false;
@@ -22,34 +24,39 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddControllersWithViews()
-     .AddJsonOptions(opt =>
-     {
-         opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-     });
-
-builder.Services.AddRazorPages();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 builder.Services.AddScoped<EDzienik.Services.SchoolContextService>();
 
-var app = builder.Build();
+static async Task SeedRolesAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+    var roles = Enum.GetNames<UserRoles>();
+
+    foreach (var r in roles)
+        if (!await roleManager.RoleExistsAsync(r))
+            await roleManager.CreateAsync(new IdentityRole(r));
+}
+
+var app = builder.Build();
+//test
 if (app.Environment.IsDevelopment())
 {
-    using var scope = app.Services.CreateScope();
+    await DevSeed.SeedAsync(app.Services);
+}
+
+using (var scope = app.Services.CreateScope())
+{
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
-else
+
+await SeedRolesAsync(app.Services);
+
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -65,12 +72,9 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Subjects}/{action=Index}/{id?}");
+
 
 app.MapRazorPages();
 
-
-app.MapControllers();
-
 app.Run();
-
