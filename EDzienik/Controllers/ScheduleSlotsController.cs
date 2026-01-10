@@ -53,33 +53,39 @@ namespace EDzienik.Controllers
         {
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName");
             return View();
         }
 
         // POST: ScheduleSlots/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ScheduleSlotViewModel model) // Przyjmujemy ViewModel
+        public async Task<IActionResult> Create(ScheduleSlotViewModel model)
         {
             if (model.EndTime <= model.StartTime)
             {
                 ModelState.AddModelError("EndTime", "Zajęcia muszą kończyć się później niż zaczynają.");
             }
 
-            // Konwersja ViewModel -> Entity
             var scheduleSlot = new ScheduleSlot
             {
                 DayOfWeek = model.DayOfWeek,
                 Room = model.Room,
                 SchoolClassId = model.SchoolClassId,
                 SubjectId = model.SubjectId,
-
-                // Przeliczenie DateTime na Unix Timestamp
                 StartUnix = ((DateTimeOffset)model.StartTime).ToUnixTimeSeconds(),
                 EndUnix = ((DateTimeOffset)model.EndTime).ToUnixTimeSeconds(),
 
-                // HARDCODED TEACHER ID (Tryb testowy taki sam jak w Grades)
-                TeacherId = 1
+                TeacherId = model.TeacherId
             };
 
             if (ModelState.IsValid)
@@ -114,9 +120,18 @@ namespace EDzienik.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Jeśli błąd, przywracamy listy rozwijane
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", model.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", model.SubjectId);
+
+            var teachers = _context.Teachers
+               .Include(t => t.User)
+               .Select(t => new {
+                   Id = t.Id,
+                   FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+               })
+               .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", model.TeacherId);
+
             return View(model);
         }
 

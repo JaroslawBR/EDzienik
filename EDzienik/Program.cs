@@ -33,6 +33,11 @@ builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+builder.Services.AddScoped<EDzienik.Services.SchoolContextService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

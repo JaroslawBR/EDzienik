@@ -68,7 +68,16 @@ namespace EDzienik.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", schoolEvent.TeacherId);
+
             return View(schoolEvent);
         }
 
@@ -86,7 +95,16 @@ namespace EDzienik.Controllers
                 return NotFound();
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", schoolEvent.TeacherId);
+
             return View(schoolEvent);
         }
 
@@ -123,7 +141,16 @@ namespace EDzienik.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", schoolEvent.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", schoolEvent.TeacherId);
+
             return View(schoolEvent);
         }
 

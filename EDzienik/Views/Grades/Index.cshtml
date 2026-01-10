@@ -1,65 +1,54 @@
 ﻿@model IEnumerable<EDzienik.Entities.Grade>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Oceny";
 }
 
-<h1>Index</h1>
+<h1>Oceny</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Wystaw nową ocenę</a>
 </p>
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Value)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedUnix)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Student)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Teacher)
-            </th>
+            <th>Data</th>
+            <th>Przedmiot</th>
+            <th>Uczeń</th>
+            <th>Ocena</th>
+            <th>Opis</th>
+            <th>Nauczyciel</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Value)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedUnix)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Student.UserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Teacher.UserId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @DateTimeOffset.FromUnixTimeSeconds(item.CreatedUnix).ToString("dd.MM.yyyy HH:mm")
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Subject.Name)
+                </td>
+                <td>
+                    @(item.Student.User != null ? $"{item.Student.User.FirstName} {item.Student.User.LastName}" : "Brak danych")
+                </td>
+                <td style="font-weight: bold; font-size: 1.1em;">
+                    @Html.DisplayFor(modelItem => item.Value)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

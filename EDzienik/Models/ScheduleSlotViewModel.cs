@@ -30,5 +30,9 @@ namespace EDzienik.Models
         [Display(Name = "Przedmiot")]
         public int SubjectId { get; set; }
 
+        [Required]
+        [Display(Name = "Nauczyciel")]
+        public int TeacherId { get; set; }
+
     }
 }
