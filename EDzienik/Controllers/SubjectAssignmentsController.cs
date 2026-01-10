@@ -242,7 +242,7 @@ namespace EDzienik.Controllers
             return _context.SubjectAssignments.Any(e => e.Id == id);
         }
 
-        // funkcja pomocnicza do pobrania zalogowanego nauczyciela
+        //  funkcja pomocnicza do pobrania zalogowanego nauczyciela
 
         private async Task<Teacher?> GetLoggedTeacherAsync()
         {
