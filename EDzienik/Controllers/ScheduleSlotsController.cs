@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using EDzienik.Data;
+using EDzienik.Entities;
+using EDzienik.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using EDzienik.Data;
-using EDzienik.Entities;
-using EDzienik.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EDzienik.Controllers
 {
+    [Authorize]
     public class ScheduleSlotsController : Controller
     {
         private readonly AppDbContext _context;
@@ -21,10 +23,31 @@ namespace EDzienik.Controllers
         }
 
         // GET: ScheduleSlots
+        // GET: ScheduleSlots
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.ScheduleSlots.Include(s => s.SchoolClass).Include(s => s.Subject).Include(s => s.Teacher);
-            return View(await appDbContext.ToListAsync());
+            var teacher = await GetLoggedTeacherAsync();
+            var student = await GetLoggedStudentAsync();
+
+            var query = _context.ScheduleSlots
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher).ThenInclude(t => t.User)
+                .AsQueryable();
+
+            if (teacher != null)
+            {
+                query = query.Where(s => s.TeacherId == teacher.Id);
+            }
+            else if (student != null)
+            {
+                query = query.Where(s => s.SchoolClassId == student.SchoolClassId);
+            }
+
+            return View(await query
+                .OrderBy(s => s.DayOfWeek)
+                .ThenBy(s => s.StartUnix)
+                .ToListAsync());
         }
 
         // GET: ScheduleSlots/Details/5
@@ -49,6 +72,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: ScheduleSlots/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
@@ -69,6 +93,7 @@ namespace EDzienik.Controllers
         // POST: ScheduleSlots/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(ScheduleSlotViewModel model)
         {
             if (model.EndTime <= model.StartTime)
@@ -100,9 +125,8 @@ namespace EDzienik.Controllers
                     bool overlap = (scheduleSlot.StartUnix < slot.EndUnix) && (scheduleSlot.EndUnix > slot.StartUnix);
                     if (overlap)
                     {
-                        // Tutaj sprawdzamy TeacherId=1 "na sztywno" bo taki przypisujemy
-                        if (slot.TeacherId == 1)
-                            ModelState.AddModelError("", "Masz już zajęcia w tym czasie!");
+                        if (slot.TeacherId == scheduleSlot.TeacherId)
+                            ModelState.AddModelError("TeacherId", "Ten nauczyciel ma już zajęcia w tym czasie!");
 
                         if (slot.SchoolClassId == scheduleSlot.SchoolClassId)
                             ModelState.AddModelError("SchoolClassId", "Ta klasa ma już zajęcia w tym czasie.");
@@ -136,6 +160,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: ScheduleSlots/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -157,6 +182,7 @@ namespace EDzienik.Controllers
         // POST: ScheduleSlots/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
         {
             if (id != scheduleSlot.Id) return NotFound();
@@ -207,6 +233,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: ScheduleSlots/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -230,6 +257,7 @@ namespace EDzienik.Controllers
         // POST: ScheduleSlots/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var scheduleSlot = await _context.ScheduleSlots.FindAsync(id);
@@ -245,6 +273,24 @@ namespace EDzienik.Controllers
         private bool ScheduleSlotExists(int id)
         {
             return _context.ScheduleSlots.Any(e => e.Id == id);
+        }
+
+        //funkcje pomocnicze
+
+        private async Task<Teacher?> GetLoggedTeacherAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Teachers.Include(t => t.User).FirstOrDefaultAsync(t => t.User.Email == userEmail);
+        }
+
+        private async Task<Student?> GetLoggedStudentAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Students.Include(s => s.User).FirstOrDefaultAsync(s => s.User.Email == userEmail);
         }
     }
 }

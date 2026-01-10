@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using EDzienik.Data;
+using EDzienik.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using EDzienik.Data;
-using EDzienik.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EDzienik.Controllers
 {
+    [Authorize]
     public class SchoolEventsController : Controller
     {
         private readonly AppDbContext _context;
@@ -20,10 +22,39 @@ namespace EDzienik.Controllers
         }
 
         // GET: SchoolEvents
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DateTime? from, DateTime? to)
         {
-            var appDbContext = _context.SchoolEvents.Include(s => s.SchoolClass).Include(s => s.Teacher);
-            return View(await appDbContext.ToListAsync());
+            var teacher = await GetLoggedTeacherAsync();
+            var student = await GetLoggedStudentAsync();
+
+            var query = _context.SchoolEvents
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Teacher)
+                .ThenInclude(t => t.User)
+                .AsQueryable();
+
+            if (teacher != null)
+            {
+                query = query.Where(e => e.TeacherId == teacher.Id);
+            }
+            else if (student != null)
+            {
+                query = query.Where(e => e.SchoolClassId == student.SchoolClassId);
+            }
+
+            if (from.HasValue)
+            {
+                query = query.Where(e => e.Date >= from.Value);
+            }
+            if (to.HasValue)
+            {
+                query = query.Where(e => e.Date <= to.Value);
+            }
+
+            ViewData["FromDate"] = from?.ToString("yyyy-MM-dd");
+            ViewData["ToDate"] = to?.ToString("yyyy-MM-dd");
+
+            return View(await query.OrderByDescending(e => e.Date).ToListAsync());
         }
 
         // GET: SchoolEvents/Details/5
@@ -47,10 +78,43 @@ namespace EDzienik.Controllers
         }
 
         // GET: SchoolEvents/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId");
+            var teacher = await GetLoggedTeacherAsync();
+
+            if (teacher == null && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            if (teacher != null)
+            {
+                var myClassIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SchoolClassId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var myClasses = await _context.SchoolClasses
+                    .Where(c => myClassIds.Contains(c.Id))
+                    .ToListAsync();
+
+                ViewData["SchoolClassId"] = new SelectList(myClasses, "Id", "Name");
+            }
+            else
+            {
+                ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
+
+                var teachers = _context.Teachers
+                    .Include(t => t.User)
+                    .Select(t => new {
+                        Id = t.Id,
+                        FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                    })
+                    .ToList();
+                ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName");
+            }
+
             return View();
         }
 
@@ -59,25 +123,34 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Content,Date,Type,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
+        public async Task<IActionResult> Create([Bind("Id,Title,Content,Date,Type,SchoolClassId")] SchoolEvent schoolEvent)
         {
+            var teacher = await GetLoggedTeacherAsync();
+
+            if (teacher != null)
+            {
+                var myClassIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SchoolClassId)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!myClassIds.Contains(schoolEvent.SchoolClassId))
+                    return Forbid();
+
+                schoolEvent.TeacherId = teacher.Id;
+            }
+
+            if (teacher == null && !User.IsInRole("Admin")) return Forbid();
+
             if (ModelState.IsValid)
             {
                 _context.Add(schoolEvent);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
-
-            var teachers = _context.Teachers
-                .Include(t => t.User)
-                .Select(t => new {
-                    Id = t.Id,
-                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
-                })
-                .ToList();
-            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", schoolEvent.TeacherId);
-
             return View(schoolEvent);
         }
 
@@ -94,6 +167,17 @@ namespace EDzienik.Controllers
             {
                 return NotFound();
             }
+
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || schoolEvent.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+            }
+
+
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
 
             var teachers = _context.Teachers
@@ -118,6 +202,18 @@ namespace EDzienik.Controllers
             if (id != schoolEvent.Id)
             {
                 return NotFound();
+            }
+
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+                var originalEvent = await _context.SchoolEvents.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+
+                if (originalEvent == null || teacher == null || originalEvent.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+                schoolEvent.TeacherId = originalEvent.TeacherId;
             }
 
             if (ModelState.IsValid)
@@ -171,6 +267,15 @@ namespace EDzienik.Controllers
                 return NotFound();
             }
 
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || schoolEvent.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+            }
+
             return View(schoolEvent);
         }
 
@@ -179,12 +284,17 @@ namespace EDzienik.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var schoolEvent = await _context.SchoolEvents.FindAsync(id);
-            if (schoolEvent != null)
+            var ev = await _context.SchoolEvents.FindAsync(id);
+            if (ev == null) return RedirectToAction(nameof(Index));
+
+            if (!User.IsInRole("Admin"))
             {
-                _context.SchoolEvents.Remove(schoolEvent);
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || ev.TeacherId != teacher.Id)
+                    return Forbid();
             }
 
+            _context.SchoolEvents.Remove(ev);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -192,6 +302,28 @@ namespace EDzienik.Controllers
         private bool SchoolEventExists(int id)
         {
             return _context.SchoolEvents.Any(e => e.Id == id);
+        }
+
+        //funckje pomocnicze
+
+        private async Task<Teacher?> GetLoggedTeacherAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Teachers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.User.Email == userEmail);
+        }
+
+        private async Task<Student?> GetLoggedStudentAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Students
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.User.Email == userEmail);
         }
     }
 }

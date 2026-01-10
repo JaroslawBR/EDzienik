@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using EDzienik.Data;
+using EDzienik.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using EDzienik.Data;
-using EDzienik.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EDzienik.Controllers
 {
+    [Authorize(Roles = "Admin,Teacher")]
     public class SubjectAssignmentsController : Controller
     {
         private readonly AppDbContext _context;
@@ -22,8 +24,21 @@ namespace EDzienik.Controllers
         // GET: SubjectAssignments
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.SubjectAssignments.Include(s => s.SchoolClass).Include(s => s.Subject).Include(s => s.Teacher);
-            return View(await appDbContext.ToListAsync());
+            var teacher = await GetLoggedTeacherAsync();
+
+            var query = _context.SubjectAssignments
+                .Include(s => s.SchoolClass)
+                .Include(s => s.Subject)
+                .Include(s => s.Teacher)
+                .ThenInclude(t => t.User)
+                .AsQueryable();
+
+            if (teacher != null && !User.IsInRole("Admin"))
+            {
+                query = query.Where(s => s.TeacherId == teacher.Id);
+            }
+
+            return View(await query.ToListAsync());
         }
 
         // GET: SubjectAssignments/Details/5
@@ -48,6 +63,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: SubjectAssignments/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
@@ -71,6 +87,7 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
         {
             bool exists = await _context.SubjectAssignments.AnyAsync(s =>
@@ -106,6 +123,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: SubjectAssignments/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -138,6 +156,7 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
         {
             if (id != subjectAssignment.Id)
@@ -181,6 +200,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: SubjectAssignments/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -204,6 +224,7 @@ namespace EDzienik.Controllers
         // POST: SubjectAssignments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var subjectAssignment = await _context.SubjectAssignments.FindAsync(id);
@@ -220,5 +241,29 @@ namespace EDzienik.Controllers
         {
             return _context.SubjectAssignments.Any(e => e.Id == id);
         }
+
+        // funkcja pomocnicza do pobrania zalogowanego nauczyciela
+
+        private async Task<Teacher?> GetLoggedTeacherAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Teachers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.User.Email == userEmail);
+        }
+
+        private async Task<Student?> GetLoggedStudentAsync()
+        {
+            var userEmail = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userEmail)) return null;
+
+            return await _context.Students
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.User.Email == userEmail);
+        }
+
+
     }
 }
