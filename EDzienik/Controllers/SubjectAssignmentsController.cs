@@ -54,10 +54,10 @@ namespace EDzienik.Controllers
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
 
             var teachers = _context.Teachers
-                .Include(t => t.User) 
+                .Include(t => t.User)
                 .Select(t => new {
                     Id = t.Id,
-                    FullName = t.User.Email
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
                 })
                 .ToList();
 
@@ -92,7 +92,16 @@ namespace EDzienik.Controllers
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", subjectAssignment.TeacherId);
+
             return View(subjectAssignment);
         }
 
@@ -111,7 +120,16 @@ namespace EDzienik.Controllers
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", subjectAssignment.TeacherId);
+
             return View(subjectAssignment);
         }
 
@@ -149,7 +167,16 @@ namespace EDzienik.Controllers
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", subjectAssignment.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", subjectAssignment.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", subjectAssignment.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", subjectAssignment.TeacherId);
+
             return View(subjectAssignment);
         }
 
