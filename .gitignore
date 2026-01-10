@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 appsettings.Development.json
+/EDzienik/edzienik.db
+/EDzienik/edzienik.db-shm

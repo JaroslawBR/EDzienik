@@ -50,39 +50,58 @@ namespace EDzienik.Controllers
         public async Task<IActionResult> Create()
         {
             var teacher = await GetLoggedTeacherAsync();
-            if (teacher == null)
+
+            if (teacher == null && !User.IsInRole("Admin"))
             {
                 return Content("Błąd: Tylko nauczyciel może wystawiać oceny (lub brak powiązania konta).");
             }
 
-            var mySubjects = await _context.SubjectAssignments
-                .Where(sa => sa.TeacherId == teacher.Id)
-                .Include(sa => sa.Subject)
-                .Select(sa => sa.Subject)
-                .Distinct()
-                .ToListAsync();
+            if (User.IsInRole("Admin"))
+            {
+                ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name");
 
-            var myClassIds = await _context.SubjectAssignments
-                .Where(sa => sa.TeacherId == teacher.Id)
-                .Select(sa => sa.SchoolClassId)
-                .Distinct()
-                .ToListAsync();
+                var allStudents = await _context.Students
+                    .Include(s => s.User).Include(s => s.SchoolClass)
+                    .Select(s => new { Id = s.Id, FullName = $"{s.User.LastName} {s.User.FirstName} ({s.SchoolClass.Name})" })
+                    .ToListAsync();
+                ViewData["StudentId"] = new SelectList(allStudents, "Id", "FullName");
 
-            var myStudents = await _context.Students
-                .Include(s => s.User)
-                .Include(s => s.SchoolClass)
-                .Where(s => myClassIds.Contains(s.SchoolClassId))
-                .OrderBy(s => s.SchoolClass.Name)
-                .ThenBy(s => s.User.LastName)
-                .Select(s => new
-                {
-                    Id = s.Id,
-                    FullName = $"{s.User.LastName} {s.User.FirstName} (klasa {s.SchoolClass.Name})"
-                })
-                .ToListAsync();
+                var allTeachers = await _context.Teachers.Include(t => t.User)
+                    .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" })
+                    .ToListAsync();
+                ViewData["TeacherId"] = new SelectList(allTeachers, "Id", "FullName");
+            }
+            else
+            {
+                var mySubjects = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Include(sa => sa.Subject)
+                    .Select(sa => sa.Subject)
+                    .Distinct()
+                    .ToListAsync();
 
-            ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name");
-            ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName");
+                var myClassIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SchoolClassId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var myStudents = await _context.Students
+                    .Include(s => s.User)
+                    .Include(s => s.SchoolClass)
+                    .Where(s => myClassIds.Contains(s.SchoolClassId))
+                    .OrderBy(s => s.SchoolClass.Name)
+                    .ThenBy(s => s.User.LastName)
+                    .Select(s => new
+                    {
+                        Id = s.Id,
+                        FullName = $"{s.User.LastName} {s.User.FirstName} (klasa {s.SchoolClass.Name})"
+                    })
+                    .ToListAsync();
+
+                ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name");
+                ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName");
+            }
 
             return View();
         }
@@ -92,25 +111,39 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Value,Description,StudentId,SubjectId")] Grade grade)
+        public async Task<IActionResult> Create([Bind("Value,Description,StudentId,SubjectId,TeacherId")] Grade grade)
         {
             var teacher = await GetLoggedTeacherAsync();
-            if (teacher == null) return Forbid();
 
-            grade.TeacherId = teacher.Id;
+            if (teacher != null)
+            {
+                grade.TeacherId = teacher.Id;
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                if (grade.TeacherId == 0) ModelState.AddModelError("TeacherId", "Admin musi wskazać nauczyciela wystawiającego ocenę.");
+            }
+            else
+            {
+                return Forbid();
+            }
+
             grade.CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-            var student = await _context.Students.FindAsync(grade.StudentId);
-            if (student != null)
+            if (!User.IsInRole("Admin") && teacher != null)
             {
-                bool hasAssignment = await _context.SubjectAssignments.AnyAsync(sa =>
-                   sa.TeacherId == teacher.Id &&
-                   sa.SubjectId == grade.SubjectId &&
-                   sa.SchoolClassId == student.SchoolClassId);
-
-                if (!hasAssignment)
+                var student = await _context.Students.FindAsync(grade.StudentId);
+                if (student != null)
                 {
-                    ModelState.AddModelError("", "Nie masz przypisania do klasy tego ucznia z tego przedmiotu.");
+                    bool hasAssignment = await _context.SubjectAssignments.AnyAsync(sa =>
+                       sa.TeacherId == teacher.Id &&
+                       sa.SubjectId == grade.SubjectId &&
+                       sa.SchoolClassId == student.SchoolClassId);
+
+                    if (!hasAssignment)
+                    {
+                        ModelState.AddModelError("", "Nie masz przypisania do klasy tego ucznia z tego przedmiotu.");
+                    }
                 }
             }
 
@@ -160,6 +193,17 @@ namespace EDzienik.Controllers
             {
                 return NotFound();
             }
+
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || grade.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+            }
+
+
             ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId", grade.StudentId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);
@@ -176,6 +220,33 @@ namespace EDzienik.Controllers
             if (id != grade.Id)
             {
                 return NotFound();
+            }
+
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+
+                var originalGrade = await _context.Grades.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
+                if (originalGrade == null || teacher == null || originalGrade.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+
+                grade.TeacherId = teacher.Id;
+
+                var student = await _context.Students.FindAsync(grade.StudentId);
+                if (student != null)
+                {
+                    bool hasAssignment = await _context.SubjectAssignments.AnyAsync(sa =>
+                       sa.TeacherId == teacher.Id &&
+                       sa.SubjectId == grade.SubjectId &&
+                       sa.SchoolClassId == student.SchoolClassId);
+
+                    if (!hasAssignment)
+                    {
+                        ModelState.AddModelError("", "Nie uczysz tego ucznia wybranego przedmiotu (brak przypisania).");
+                    }
+                }
             }
 
             if (ModelState.IsValid)
@@ -198,7 +269,8 @@ namespace EDzienik.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId", grade.StudentId);
+
+            ViewData["StudentId"] = new SelectList(_context.Students.Include(s => s.User), "Id", "User.LastName", grade.StudentId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
             ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);
             return View(grade);
@@ -222,6 +294,15 @@ namespace EDzienik.Controllers
                 return NotFound();
             }
 
+            if (!User.IsInRole("Admin"))
+            {
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || grade.TeacherId != teacher.Id)
+                {
+                    return Forbid();
+                }
+            }
+
             return View(grade);
         }
 
@@ -231,11 +312,16 @@ namespace EDzienik.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var grade = await _context.Grades.FindAsync(id);
-            if (grade != null)
+            if (grade == null) return RedirectToAction(nameof(Index));
+
+            if (!User.IsInRole("Admin"))
             {
-                _context.Grades.Remove(grade);
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null || grade.TeacherId != teacher.Id)
+                    return Forbid();
             }
 
+            _context.Grades.Remove(grade);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
