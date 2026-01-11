@@ -21,6 +21,7 @@ namespace EDzienik.Controllers
             _context = context;
         }
 
+
         // GET: SchoolEvents
         public async Task<IActionResult> Index(DateTime? from, DateTime? to)
         {
@@ -103,7 +104,7 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Date,EventType,Description,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
+        public async Task<IActionResult> Create([Bind("Id,Title,Date,Type,Content,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
         {
             var teacher = await GetLoggedTeacherAsync();
 

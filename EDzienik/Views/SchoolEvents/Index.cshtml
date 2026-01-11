@@ -48,7 +48,7 @@
                                 </div>
                             </td>
                             <td>
-                                @* Logika kolorów badge'y *@
+                                @* Logika kolorów i nazw badge'y *@
                                 @{
                                     var badgeClass = item.Type switch
                                     {
@@ -56,9 +56,17 @@
                                         EventType.Homework => "bg-warning text-dark",
                                         _ => "bg-info text-dark"
                                     };
+
+                                    var typeNamePL = item.Type switch
+                                    {
+                                        EventType.Exam => "Sprawdzian",
+                                        EventType.Homework => "Zadanie domowe",
+                                        EventType.Announcement => "Ogłoszenie",
+                                        _ => "Inne"
+                                    };
                                 }
                                 <span class="badge @badgeClass">
-                                    @Html.DisplayFor(modelItem => item.Type)
+                                    @typeNamePL
                                 </span>
                             </td>
                             <td>

@@ -1,50 +1,57 @@
-﻿@model EDzienik.Entities.SchoolClass
+﻿@model IEnumerable<EDzienik.Entities.SchoolClass>
 
 @{
-    ViewData["Title"] = "Utwórz klasę";
+    ViewData["Title"] = "Lista klas";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Utwórz nową klasę</h1>
+    <h1 class="h3 mb-0 text-gray-800">Zarządzanie Klasami</h1>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50"></i> Dodaj nową klasę
+    </a>
 </div>
 
-<div class="card shadow mb-4 border-left-info">
+<div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-info">Dane klasy</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Dostępne klasy</h6>
     </div>
     <div class="card-body">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Name" class="form-label small text-uppercase fw-bold text-muted">Nazwa klasy</label>
-                    <input asp-for="Name" class="form-control" placeholder="np. 1A" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="SchoolYear" class="form-label small text-uppercase fw-bold text-muted">Rok szkolny</label>
-                    <input asp-for="SchoolYear" class="form-control" placeholder="np. 2023/2024" />
-                    <span asp-validation-for="SchoolYear" class="text-danger"></span>
-                </div>
-            </div>
-
-            <hr class="my-4" />
-
-            <div class="d-flex justify-content-end">
-                <a asp-action="Index" class="btn btn-secondary me-2">
-                    <i class="fas fa-arrow-left me-1"></i> Powrót
-                </a>
-                <button type="submit" class="btn btn-info text-white shadow-sm">
-                    <i class="fas fa-plus me-1"></i> Utwórz
-                </button>
-            </div>
-        </form>
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Nazwa klasy</th>
+                        <th>Rok szkolny</th>
+                        <th style="width: 20%;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.SchoolYear)
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white" title="Edytuj">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-secondary text-white" title="Szczegóły">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-white" title="Usuń">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

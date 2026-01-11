@@ -3,10 +3,12 @@ using EDzienik.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace EDzienik.Controllers
 {
-    [Authorize(Roles = "Admin")] 
+    [Authorize]
     public class SchoolClassesController : Controller
     {
         private readonly AppDbContext _context;
@@ -16,20 +18,46 @@ namespace EDzienik.Controllers
             _context = context;
         }
 
+        // GET: SchoolClasses
         public async Task<IActionResult> Index()
         {
-            return View(await _context.SchoolClasses.OrderBy(c => c.Name).ToListAsync());
+            return View(await _context.SchoolClasses.ToListAsync());
         }
 
+        // GET: SchoolClasses/Details/5
+        [Authorize(Roles = "Admin,Teacher")]
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            var schoolClass = await _context.SchoolClasses
+                .Include(c => c.Students)
+                .ThenInclude(s => s.User) 
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (schoolClass == null)
+            {
+                return NotFound();
+            }
+
+            return View(schoolClass);
+        }
+
+        // GET: SchoolClasses/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
+        // POST: SchoolClasses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,SchoolYear")] SchoolClass schoolClass)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("Id,Name")] SchoolClass schoolClass)
         {
             if (ModelState.IsValid)
             {
@@ -40,6 +68,8 @@ namespace EDzienik.Controllers
             return View(schoolClass);
         }
 
+        // GET: SchoolClasses/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -55,9 +85,11 @@ namespace EDzienik.Controllers
             return View(schoolClass);
         }
 
+        // POST: SchoolClasses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,SchoolYear")] SchoolClass schoolClass)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] SchoolClass schoolClass)
         {
             if (id != schoolClass.Id)
             {
@@ -87,6 +119,8 @@ namespace EDzienik.Controllers
             return View(schoolClass);
         }
 
+        // GET: SchoolClasses/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -104,8 +138,10 @@ namespace EDzienik.Controllers
             return View(schoolClass);
         }
 
+        // POST: SchoolClasses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var schoolClass = await _context.SchoolClasses.FindAsync(id);
