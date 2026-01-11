@@ -11,7 +11,6 @@
         // Pobieramy czas lokalny z timestampa, aby wyświetlić poprawną godzinę w formularzu
         if (Model.StartUnix > 0)
             startVal = DateTimeOffset.FromUnixTimeSeconds(Model.StartUnix).LocalDateTime.ToString("HH:mm");
-
         if (Model.EndUnix > 0)
             endVal = DateTimeOffset.FromUnixTimeSeconds(Model.EndUnix).LocalDateTime.ToString("HH:mm");
     }
@@ -64,22 +63,28 @@
                     <label class="form-label fw-bold">Godzina zakończenia</label>
                     <input type="time" class="form-control" id="endTimeDisplay" value="@endVal" required />
                 </div>
+                <div class="col-12">
+                    <span asp-validation-for="EndUnix" class="text-danger"></span>
+                </div>
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
                     <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    <span asp-validation-for="SubjectId" class="text-danger"></span>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label asp-for="SchoolClassId" class="form-label fw-bold">Klasa</label>
                     <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                    <span asp-validation-for="SchoolClassId" class="text-danger"></span>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel</label>
                 <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                <span asp-validation-for="TeacherId" class="text-danger"></span>
             </div>
 
             <hr class="my-4" />
@@ -106,7 +111,6 @@
         // Przy wysyłaniu formularza bierze godziny z inputów "time",
         // zamienia je na Timestamp Unix (dla dzisiejszej daty) i wpisuje w ukryte pola.
         // Dzięki temu kontroler dostaje to, czego oczekuje (long), a użytkownik widzi godziny.
-
         document.getElementById('editSlotForm').addEventListener('submit', function (e) {
             const startStr = document.getElementById('startTimeDisplay').value;
             const endStr = document.getElementById('endTimeDisplay').value;
@@ -118,9 +122,9 @@
                 document.getElementById('EndUnixHidden').value = timeToUnix(endStr);
             }
         });
-
         function timeToUnix(timeStr) {
-            const date = new Date(); // dzisiejsza data (tak samo działa Create)
+            const date = new Date();
+            // dzisiejsza data (tak samo działa Create)
             const [hours, minutes] = timeStr.split(':');
             date.setHours(hours, minutes, 0, 0);
             return Math.floor(date.getTime() / 1000);

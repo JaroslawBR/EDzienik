@@ -60,16 +60,19 @@
                     <div class="mb-3">
                         <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
                         <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                        <span asp-validation-for="SubjectId" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="SchoolClassId" class="form-label fw-bold">Klasa</label>
                         <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                        <span asp-validation-for="SchoolClassId" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel prowadzący</label>
                         <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                        <span asp-validation-for="TeacherId" class="text-danger"></span>
                     </div>
                 </div>
             </div>
