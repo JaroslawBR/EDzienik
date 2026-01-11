@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using EDzienik.Models;
+using EDzienik.Data; // 1. Dodano using do DbContext
 
 namespace EDzienik.Controllers
 {
@@ -14,11 +15,13 @@ namespace EDzienik.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly AppDbContext _context;
 
-        public UsersController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
+        public UsersController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, AppDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index(string searchString, string roleFilter)
@@ -44,12 +47,11 @@ namespace EDzienik.Controllers
             {
                 var roles = await _userManager.GetRolesAsync(user);
 
-       
                 if (!string.IsNullOrEmpty(roleFilter))
                 {
                     if (!roles.Contains(roleFilter))
                     {
-                        continue; 
+                        continue;
                     }
                 }
 
@@ -99,6 +101,17 @@ namespace EDzienik.Controllers
                             await _roleManager.CreateAsync(new IdentityRole(model.Role));
                         }
                         await _userManager.AddToRoleAsync(user, model.Role);
+
+                        if (model.Role == "Teacher")
+                        {
+                            var teacher = new Teacher
+                            {
+                                UserId = user.Id
+                            };
+                            _context.Teachers.Add(teacher);
+                            await _context.SaveChangesAsync();
+                        }
+
                     }
                     return RedirectToAction(nameof(Index));
                 }
@@ -175,6 +188,16 @@ namespace EDzienik.Controllers
             {
                 await _userManager.RemoveFromRolesAsync(user, currentRoles);
                 await _userManager.AddToRoleAsync(user, model.Role);
+
+                if (model.Role == "Teacher")
+                {
+                    var existingTeacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == user.Id);
+                    if (existingTeacher == null)
+                    {
+                        _context.Teachers.Add(new Teacher { UserId = user.Id });
+                        await _context.SaveChangesAsync();
+                    }
+                }
             }
 
             var result = await _userManager.UpdateAsync(user);
@@ -222,7 +245,6 @@ namespace EDzienik.Controllers
                     TempData["Error"] = "Nie możesz usunąć swojego konta.";
                     return RedirectToAction(nameof(Index));
                 }
-
                 var result = await _userManager.DeleteAsync(user);
 
                 if (result.Succeeded)
