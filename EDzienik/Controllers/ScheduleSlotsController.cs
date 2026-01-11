@@ -23,8 +23,7 @@ namespace EDzienik.Controllers
         }
 
         // GET: ScheduleSlots
-        // GET: ScheduleSlots
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? schoolClassId, int? teacherId)
         {
             var teacher = await GetLoggedTeacherAsync();
             var student = await GetLoggedStudentAsync();
@@ -42,6 +41,31 @@ namespace EDzienik.Controllers
             else if (student != null)
             {
                 query = query.Where(s => s.SchoolClassId == student.SchoolClassId);
+            }
+
+            if (User.IsInRole("Admin"))
+            {
+                if (schoolClassId.HasValue)
+                {
+                    query = query.Where(s => s.SchoolClassId == schoolClassId.Value);
+                }
+                if (teacherId.HasValue)
+                {
+                    query = query.Where(s => s.TeacherId == teacherId.Value);
+                }
+
+                ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses.OrderBy(c => c.Name), "Id", "Name", schoolClassId);
+
+                var teachersList = await _context.Teachers
+                    .Include(t => t.User)
+                    .OrderBy(t => t.User.LastName)
+                    .Select(t => new {
+                        Id = t.Id,
+                        FullName = $"{t.User.LastName} {t.User.FirstName}"
+                    })
+                    .ToListAsync();
+
+                ViewData["TeacherId"] = new SelectList(teachersList, "Id", "FullName", teacherId);
             }
 
             return View(await query
