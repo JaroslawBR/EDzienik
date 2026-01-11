@@ -15,6 +15,53 @@
 </div>
 
 <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Filtruj Oceny</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+            {
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Klasa</label>
+                    <select name="schoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId" onchange="this.form.submit()">
+                        <option value="">-- Wszystkie Klasy --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Uczeń</label>
+                    <select name="studentId" class="form-control" asp-items="ViewBag.StudentId" onchange="this.form.submit()">
+                        <option value="">-- Wszyscy Uczniowie --</option>
+                    </select>
+                </div>
+            }
+
+            <div class="col-md-3">
+                <label class="form-label small text-muted">Przedmiot</label>
+                <select name="subjectId" class="form-control" asp-items="ViewBag.SubjectId" onchange="this.form.submit()">
+                    <option value="">-- Wszystkie Przedmioty --</option>
+                </select>
+            </div>
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Student"))
+            {
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Nauczyciel</label>
+                    <select name="teacherId" class="form-control" asp-items="ViewBag.TeacherId" onchange="this.form.submit()">
+                        <option value="">-- Wszyscy Nauczyciele --</option>
+                    </select>
+                </div>
+            }
+
+            <div class="col-12 mt-3">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Wyczyść filtry</a>
+                <button type="submit" class="btn btn-secondary btn-sm">Szukaj</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">Lista Ostatnich Ocen</h6>
     </div>
@@ -47,7 +94,6 @@
                             <td class="align-middle">
                                 @if (item.Student?.User != null)
                                 {
-                                    /* Zabezpieczenie przed brakiem imienia/nazwiska */
                                     var sFirst = item.Student.User.FirstName?.FirstOrDefault().ToString() ?? "?";
                                     var sLast = item.Student.User.LastName?.FirstOrDefault().ToString() ?? "?";
 
@@ -57,6 +103,7 @@
                                         </div>
                                         <div>
                                             @item.Student.User.FirstName @item.Student.User.LastName
+                                            <small class="d-block text-muted">@item.Student.SchoolClass?.Name</small>
                                         </div>
                                     </div>
                                 }

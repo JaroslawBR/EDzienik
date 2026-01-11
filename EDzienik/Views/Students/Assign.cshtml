@@ -1,0 +1,73 @@
+﻿@using EDzienik.Entities
+@model IEnumerable<User>
+
+@{
+    ViewData["Title"] = "Przypisz uczniów";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Przypisywanie uczniów</h1>
+    <a asp-action="Index" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left me-1"></i> Powrót do listy
+    </a>
+</div>
+
+<div class="alert alert-info shadow-sm">
+    <i class="fas fa-info-circle me-2"></i> Poniżej znajduje się lista użytkowników, którzy nie mają jeszcze przypisanej roli Ucznia ani Nauczyciela. Wybierz klasę i kliknij "Dodaj", aby utworzyć profil ucznia.
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Dostępni użytkownicy</h6>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                <p>Brak nowych użytkowników do przypisania.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Użytkownik</th>
+                            <th>Email</th>
+                            <th style="min-width: 250px;">Wybierz klasę</th>
+                            <th class="text-center" style="width: 100px;">Akcja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold">@user.FirstName @user.LastName</td>
+                                <td>@user.Email</td>
+                                <td>
+                                    @* Formularz dla każdego wiersza *@
+                                    <form asp-action="Assign" method="post" class="d-flex gap-2" id="form-@user.Id">
+                                        <input type="hidden" name="userId" value="@user.Id" />
+                                        <select name="schoolClassId" class="form-control form-select form-select-sm" asp-items="ViewBag.SchoolClassId">
+                                            <option value="" disabled selected>-- Wybierz klasę --</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <button type="submit" form="form-@user.Id" class="btn btn-success btn-sm btn-icon-split shadow-sm">
+                                        <span class="icon text-white-50">
+                                            <i class="fas fa-plus"></i>
+                                        </span>
+                                        <span class="text">Dodaj</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

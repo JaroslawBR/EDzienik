@@ -1,0 +1,47 @@
+﻿@model EDzienik.Entities.Student
+
+@{
+    ViewData["Title"] = "Zarządzanie uczniem";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Zarządzanie uczniem</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow mb-4 border-left-warning">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">Edycja przydziału</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-gray-200 rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user-graduate fa-3x text-gray-500"></i>
+                    </div>
+                    @if (Model.User != null)
+                    {
+                        <h4 class="text-dark">@Model.User.FirstName @Model.User.LastName</h4>
+                        <p class="text-muted">@Model.User.Email</p>
+                    }
+                </div>
+
+                <form asp-action="Manage">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="SchoolClassId" class="form-label fw-bold">Przypisana klasa</label>
+                        <select asp-for="SchoolClassId" class="form-control form-select" asp-items="ViewBag.SchoolClassId"></select>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-warning btn-block shadow-sm">
+                            <i class="fas fa-save me-1"></i> Zapisz zmiany
+                        </button>
+                        <a asp-action="Index" class="btn btn-light btn-block text-muted">Anuluj</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

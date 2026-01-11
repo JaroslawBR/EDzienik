@@ -8,13 +8,14 @@
     <h1 class="h3 mb-0 text-gray-800">Uczniowie</h1>
     @if (User.IsInRole("Admin"))
     {
-        <a asp-action="Create" class="btn btn-primary shadow-sm">
-            <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Dodaj ucznia
+        @* ZMIANA: Przycisk kieruje teraz do akcji Assign *@
+        <a asp-action="Assign" class="btn btn-primary shadow-sm">
+            <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Przypisz uczniów do klasy
         </a>
     }
 </div>
 
-<div class="card shadow mb-4 border-left-info" style="border-left: 4px solid var(--info-color);">
+<div class="card shadow mb-4 border-left-info">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-info">Baza Uczniów</h6>
     </div>
@@ -26,7 +27,10 @@
                         <th>Uczeń</th>
                         <th>Kontakt</th>
                         <th>Klasa</th>
-                        <th class="text-end">Zarządzanie</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th class="text-end">Opcje</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -35,17 +39,26 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 45px; height: 45px; font-size: 1.2rem;">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 40px; height: 40px;">
                                         <i class="fas fa-user-graduate"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark">@Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)</div>
-                                        <small class="text-muted">ID: @item.Id</small>
+                                        <div class="fw-bold text-dark">
+                                            @if (item.User != null)
+                                            {
+                                                @Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div class="text-muted"><i class="fas fa-envelope me-2 text-gray-400"></i>@Html.DisplayFor(modelItem => item.User.Email)</div>
+                                <div class="text-muted small">
+                                    @if (item.User != null)
+                                    {
+                                        @Html.DisplayFor(modelItem => item.User.Email)
+                                    }
+                                </div>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
@@ -53,22 +66,15 @@
                                     @Html.DisplayFor(modelItem => item.SchoolClass.Name)
                                 </span>
                             </td>
-                            <td class="text-end">
-                                <div class="btn-group">
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm" title="Edytuj">
-                                            <i class="fas fa-pen"></i>
-                                        </a>
-                                    }
-                                    @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
-                                    {
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary shadow-sm ms-1" title="Profil">
-                                            <i class="fas fa-id-card"></i> Profil
-                                        </a>
-                                    }
-                                </div>
-                            </td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td class="text-end">
+                                    @* ZMIANA: Przycisk Zarządzaj *@
+                                    <a asp-action="Manage" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning shadow-sm">
+                                        <i class="fas fa-cog me-1"></i> Zarządzaj
+                                    </a>
+                                </td>
+                            }
                         </tr>
                     }
                 </tbody>

@@ -1,31 +1,30 @@
 ﻿@model IEnumerable<EDzienik.Entities.Teacher>
 
 @{
-    ViewData["Title"] = "Lista nauczycieli";
+    ViewData["Title"] = "Nauczyciele";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Nauczyciele</h1>
     @if (User.IsInRole("Admin"))
     {
-        <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <a asp-action="Create" class="btn btn-success shadow-sm">
             <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj nauczyciela
         </a>
     }
 </div>
 
-<div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
+<div class="card shadow mb-4 border-left-primary">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Kadra Pedagogiczna</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Lista kadry pedagogicznej</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Nauczyciel</th>
-                        <th>Kontakt</th>
-                        <th class="text-end">Akcje</th>
+                        <th>Imię i Nazwisko</th>
+                        <th>Email</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,40 +32,19 @@
                     {
                         <tr>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 40px; height: 40px;">
-                                        <i class="fas fa-chalkboard-teacher"></i>
-                                    </div>
-                                    <div>
-                                        <span class="fw-bold text-dark">
-                                            @Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <a href="mailto:@item.User.Email" class="text-decoration-none text-muted">
-                                    <i class="far fa-envelope me-1"></i> @Html.DisplayFor(modelItem => item.User.Email)
-                                </a>
-                            </td>
-                            <td class="text-end">
-                                @if (User.IsInRole("Admin"))
+                                @if (item.User != null)
                                 {
-                                    <div class="btn-group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edytuj">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Szczegóły">
-                                            <i class="fas fa-info-circle"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
+                                    <span class="fw-bold text-dark">@item.User.FirstName @item.User.LastName</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted small fst-italic">Brak uprawnień</span>
+                                    <span class="text-muted fst-italic">(Brak powiązanego konta)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.User != null)
+                                {
+                                    @item.User.Email
                                 }
                             </td>
                         </tr>

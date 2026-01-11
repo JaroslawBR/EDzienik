@@ -6,9 +6,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Zarządzanie Klasami</h1>
-    <a asp-action="Create" class="btn btn-primary shadow-sm">
-        <i class="fas fa-plus fa-sm text-white-50"></i> Dodaj nową klasę
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Dodaj nową klasę
+        </a>
+    }
 </div>
 
 <div class="card shadow mb-4">
@@ -17,35 +20,51 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered" width="100%" cellspacing="0">
-                <thead>
+            <table class="table table-bordered table-hover align-middle" width="100%" cellspacing="0">
+                <thead class="table-light">
                     <tr>
                         <th>Nazwa klasy</th>
                         <th>Rok szkolny</th>
-                        <th style="width: 20%;">Akcje</th>
+                        <th style="width: 20%;" class="text-end">Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td>
+                            <td class="fw-bold text-dark">
                                 @Html.DisplayFor(modelItem => item.Name)
                             </td>
                             <td>
-                                @Html.DisplayFor(modelItem => item.SchoolYear)
+                                <span class="badge bg-secondary">
+                                    @Html.DisplayFor(modelItem => item.SchoolYear)
+                                </span>
                             </td>
-                            <td>
+                            <td class="text-end">
                                 <div class="btn-group" role="group">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white" title="Edytuj">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-secondary text-white" title="Szczegóły">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-white" title="Usuń">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
+                                    @* Edycja tylko dla Admina *@
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white" title="Edytuj">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    }
+
+                                    @* Szczegóły dla Admina i Nauczyciela *@
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-secondary text-white" title="Szczegóły">
+                                            <i class="fas fa-info-circle"></i>
+                                        </a>
+                                    }
+
+                                    @* Usuwanie tylko dla Admina *@
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger text-white" title="Usuń">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    }
                                 </div>
                             </td>
                         </tr>
