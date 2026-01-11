@@ -4,6 +4,14 @@
 @{
     ViewData["Title"] = "Edycja wydarzenia";
     bool isAdmin = User.IsInRole("Admin");
+
+    // ZMIANA: Definiujemy listę typów po polsku (tak jak w Create)
+    var eventTypes = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Announcement", Text = "Ogłoszenie" },
+        new SelectListItem { Value = "Exam", Text = "Egzamin / Sprawdzian" },
+        new SelectListItem { Value = "Homework", Text = "Zadanie domowe" }
+    };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -19,7 +27,6 @@
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
 
-            @* Ważne: Przesyłamy ID nauczyciela, aby nie zostało wyzerowane, jeśli pole jest disabled *@
             @if (!isAdmin)
             {
                 <input type="hidden" asp-for="TeacherId" />
@@ -33,8 +40,7 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label asp-for="Type" class="form-label fw-bold">Typ wydarzenia</label>
-                    @* Pobieramy listę z Enuma, który teraz ma polskie tłumaczenia *@
-                    <select asp-for="Type" class="form-control" asp-items="Html.GetEnumSelectList<EventType>()"></select>
+                    <select asp-for="Type" class="form-control" asp-items="eventTypes"></select>
                     <span asp-validation-for="Type" class="text-danger"></span>
                 </div>
             </div>
@@ -68,7 +74,6 @@
                     }
                     else
                     {
-                        @* Wyświetlamy tylko imię/nazwisko *@
                         <input type="text" class="form-control"
                                value="@(Model.Teacher?.User?.FirstName + " " + Model.Teacher?.User?.LastName)"
                                disabled readonly />

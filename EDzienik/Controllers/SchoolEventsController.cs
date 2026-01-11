@@ -40,7 +40,7 @@ namespace EDzienik.Controllers
             }
             else if (student != null)
             {
-                query = query.Where(e => e.SchoolClassId == student.SchoolClassId);
+                query = query.Where(e => e.SchoolClassId == student.SchoolClassId || e.SchoolClassId == null);
             }
 
             if (from.HasValue)
@@ -220,6 +220,9 @@ namespace EDzienik.Controllers
                 }
                 schoolEvent.TeacherId = originalEvent.TeacherId;
             }
+
+            ModelState.Remove("SchoolClass");
+            ModelState.Remove("Teacher");
 
             if (ModelState.IsValid)
             {

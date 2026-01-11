@@ -17,9 +17,8 @@ public class SchoolEvent
     public DateTime Date { get; set; }
 
     public EventType Type { get; set; }
-
-    public int SchoolClassId { get; set; }
-    public SchoolClass SchoolClass { get; set; } = null!;
+    public int? SchoolClassId { get; set; }
+    public SchoolClass? SchoolClass { get; set; }
 
     public int TeacherId { get; set; }
     public Teacher Teacher { get; set; } = null!;
