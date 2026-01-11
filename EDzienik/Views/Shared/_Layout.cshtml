@@ -27,10 +27,13 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Strona Główna</a>
                         </li>
 
+                        @* NOWA ZAKŁADKA DLA WSZYSTKICH *@
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">Nauczyciele</a>
+                        </li>
+
                         @if (User.IsInRole("Admin"))
                         {
-                            @* USUNIĘTO DROPDOWN "ADMINISTRACJA" - LINKI SĄ TERAZ BEZPOŚREDNIO NA PASKU *@
-
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Users" asp-action="Index">Użytkownicy</a>
                             </li>
@@ -42,10 +45,15 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">Plan Lekcji</a>
-                            </li>               
-                            @* Wydarzenia zostają bez zmian *@
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">Wydarzenia</a>
+                            </li>
+                            @* W przypadku Admina warto dodać też link do Students, jeśli go tu nie było, 
+                               ale w Twoim oryginalnym pliku go nie widziałem w sekcji Admina,
+                               co potwierdza, że StudentsController był nieco 'ukryty' *@
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Students" asp-action="Index">Uczniowie</a>
                             </li>
                         }
 
