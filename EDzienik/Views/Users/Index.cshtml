@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Zarządzanie użytkownikami";
+
+    var roleList = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Student", Text = "Uczeń" },
+        new SelectListItem { Value = "Teacher", Text = "Nauczyciel" },
+        new SelectListItem { Value = "Admin", Text = "Administrator" }
+    };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -31,7 +38,7 @@
                 </div>
             </div>
             <div class="col-md-3">
-                <select name="roleFilter" class="form-select" asp-items="@(new SelectList(new List<string> { "Student", "Teacher", "Admin" }, ViewData["CurrentRole"]))">
+                <select name="roleFilter" class="form-select" asp-items="@(new SelectList(roleList, "Value", "Text", ViewData["CurrentRole"]))">
                     <option value="">-- Wszystkie role --</option>
                 </select>
             </div>
@@ -46,6 +53,7 @@
         </form>
     </div>
 </div>
+
 <div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Lista Kont i Uprawnienia</h6>
@@ -84,7 +92,14 @@
                                     foreach (var role in user.Roles)
                                     {
                                         var badgeColor = role == "Admin" ? "bg-danger" : (role == "Teacher" ? "bg-success" : "bg-info");
-                                        <span class="badge @badgeColor me-1">@role</span>
+                                        var roleNamePL = role switch
+                                        {
+                                            "Admin" => "Administrator",
+                                            "Teacher" => "Nauczyciel",
+                                            "Student" => "Uczeń",
+                                            _ => role
+                                        };
+                                        <span class="badge @badgeColor me-1">@roleNamePL</span>
                                     }
                                 }
                                 else
