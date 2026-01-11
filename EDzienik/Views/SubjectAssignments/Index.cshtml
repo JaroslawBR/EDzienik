@@ -1,35 +1,35 @@
 ﻿@model IEnumerable<EDzienik.Entities.SubjectAssignment>
 
 @{
-    ViewData["Title"] = "Przydziały";
-    bool isAdmin = User.IsInRole("Admin");
+    ViewData["Title"] = "Przypisania Przedmiotów";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Przydziały (Kto czego uczy)</h1>
-    @if (isAdmin)
+    <h1 class="h3 mb-0 text-gray-800">Przydział Przedmiotów</h1>
+    @if (User.IsInRole("Admin"))
     {
         <a asp-action="Create" class="btn btn-secondary shadow-sm">
-            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Nowy przydział
+            <i class="fas fa-link fa-sm text-white-50 me-1"></i> Nowe przypisanie
         </a>
     }
 </div>
 
-<div class="card shadow mb-4 border-left-secondary" style="border-left: 4px solid #858796;">
+<div class="card shadow mb-4 border-left-secondary" style="border-left: 4px solid var(--secondary-color);">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-secondary">Lista Przydziałów</h6>
+        <h6 class="m-0 font-weight-bold text-secondary">Nauczyciele i ich klasy</h6>
     </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Klasa</th>
-                        <th>Przedmiot</th>
                         <th>Nauczyciel</th>
-                        @if (isAdmin)
+                        <th>Przedmiot</th>
+                        <th>Klasa</th>
+                        @* Kolumna Opcje widoczna dla Admina ORAZ Nauczyciela *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
                         {
-                            <th class="text-end">Akcje</th>
+                            <th class="text-end">Opcje</th>
                         }
                     </tr>
                 </thead>
@@ -38,34 +38,49 @@
                     {
                         <tr>
                             <td>
-                                <span class="badge bg-light text-dark border">
-                                    @(item.SchoolClass != null ? item.SchoolClass.Name : "Brak danych")
-                                </span>
-                            </td>
-                            <td class="fw-bold text-dark">
-                                @(item.Subject != null ? item.Subject.Name : "Brak danych")
-                            </td>
-                            <td>
+                                <i class="fas fa-chalkboard-teacher text-gray-400 me-2"></i>
                                 @if (item.Teacher != null && item.Teacher.User != null)
                                 {
-                                    <i class="fas fa-user-tie text-muted me-1"></i>
-                                    @($"{item.Teacher.User.LastName} {item.Teacher.User.FirstName}")
+                                    <span class="fw-bold">@item.Teacher.User.FirstName @item.Teacher.User.LastName</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">-</span>
+                                    <span class="text-muted small">@item.TeacherId (ID)</span>
                                 }
                             </td>
-                            @if (isAdmin)
+                            <td>
+                                <span class="badge bg-warning text-dark border">
+                                    <i class="fas fa-book me-1"></i> @Html.DisplayFor(modelItem => item.Subject.Name)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-white">
+                                    <i class="fas fa-users me-1"></i>
+                                    @Html.DisplayFor(modelItem => item.SchoolClass.Name)
+                                </span>
+                            </td>
+
+                            @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
                             {
                                 <td class="text-end">
                                     <div class="btn-group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Edytuj">
-                                            <i class="fas fa-pen"></i>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edytuj przypisanie">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                        }
+
+                                        <a asp-controller="SchoolClasses" asp-action="Details" asp-route-id="@item.SchoolClassId" class="btn btn-sm btn-outline-info" title="Pokaż szczegóły klasy i uczniów">
+                                            <i class="fas fa-info-circle"></i>
                                         </a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń przypisanie">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
                                     </div>
                                 </td>
                             }
