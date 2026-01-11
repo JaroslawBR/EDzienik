@@ -5,12 +5,50 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Plan Lekcji (Całościowy)</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            @if (User.IsInRole("Admin"))
+            {
+                @:Plan Lekcji (Całościowy)
+            }
+            else
+            {
+                @:Plan Zajęć
+            }
+        </h1>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-success shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj wpis
+            </a>
+        }
+    </div>
     @if (User.IsInRole("Admin"))
     {
-        <a asp-action="Create" class="btn btn-success shadow-sm">
-            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj wpis
-        </a>
+        <div class="card mb-4 border-left-primary shadow-sm" style="border-left: 4px solid var(--primary-color);">
+            <div class="card-body">
+                <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Filtruj wg Klasy:</label>
+                        <select name="schoolClassId" class="form-select" asp-items="ViewBag.SchoolClassId" onchange="this.form.submit()">
+                            <option value="">-- Wszystkie klasy --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Filtruj wg Nauczyciela:</label>
+                        <select name="teacherId" class="form-select" asp-items="ViewBag.TeacherId" onchange="this.form.submit()">
+                            <option value="">-- Wszyscy nauczyciele --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-action="Index" class="btn btn-secondary w-100">
+                            <i class="fas fa-undo me-1"></i> Resetuj filtry
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
     }
 </div>
 
