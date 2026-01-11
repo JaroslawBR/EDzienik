@@ -1,0 +1,100 @@
+﻿@model EDzienik.Models.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Edycja użytkownika";
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div>
+            <div class="text-xs text-muted">Panel administratora</div>
+            <h2 class="mb-0">@ViewData["Title"]</h2>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Wróć
+            </a>
+            <button form="editUserForm" type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Zapisz
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["Success"] is not null)
+    {
+        <div class="alert alert-success shadow-sm" role="alert">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] is not null)
+    {
+        <div class="alert alert-danger shadow-sm" role="alert">@TempData["Error"]</div>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm" role="alert"></div>
+    }
+
+    <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <span>Dane użytkownika</span>
+            <span class="badge bg-primary">
+                @(!string.IsNullOrWhiteSpace(Model.Role) ? Model.Role : "Brak roli")
+            </span>
+        </div>
+
+        <div class="card-body p-4">
+            <form id="editUserForm" asp-action="Edit" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+                <input asp-for="Id" type="hidden" />
+
+                <div class="col-md-6">
+                    <label asp-for="FirstName" class="form-label">Imię</label>
+                    <input asp-for="FirstName" class="form-control" placeholder="Wpisz imię" />
+                    <span asp-validation-for="FirstName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="LastName" class="form-label">Nazwisko</label>
+                    <input asp-for="LastName" class="form-control" placeholder="Wpisz nazwisko" />
+                    <span asp-validation-for="LastName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Email" class="form-label">Email (login)</label>
+                    <input asp-for="Email" class="form-control" placeholder="np. jan@domena.pl" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="NewPassword" class="form-label">Nowe hasło</label>
+                        <input asp-for="NewPassword" class="form-control" type="password" autocomplete="new-password" />
+                        <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmNewPassword" class="form-label">Powtórz nowe hasło</label>
+                        <input asp-for="ConfirmNewPassword" class="form-control" type="password" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmNewPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Rola</label>
+                    <select asp-for="Role" asp-items="ViewBag.Roles" class="form-control"></select>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 d-flex justify-content-end gap-2 pt-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary">Anuluj</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Zapisz zmiany
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
