@@ -1,0 +1,64 @@
+﻿@model EDzienik.Entities.SchoolClass
+
+@{
+    ViewData["Title"] = "Szczegóły klasy";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Klasa: @Model.Name</h1>
+    <div>
+        <a asp-action="Index" class="btn btn-secondary shadow-sm">Powrót</a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary shadow-sm ms-2">Edytuj</a>
+        }
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Lista uczniów</h6>
+    </div>
+    <div class="card-body">
+        @if (Model.Students != null && Model.Students.Any())
+        {
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Imię i Nazwisko</th>
+                        <th>Email</th>
+                        @* USUNIĘTO KOLUMNĘ "AKCJE" *@
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Model.Students)
+                    {
+                        <tr>
+                            <td>
+                                @if (student.User != null)
+                                {
+                                    <span class="fw-bold">@student.User.FirstName @student.User.LastName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">(Brak powiązanego użytkownika)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (student.User != null)
+                                {
+                                    @student.User.Email
+                                }
+                            </td>
+                            @* USUNIĘTO PRZYCISK SZCZEGÓŁY UCZNIA *@
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted mb-0">Brak uczniów przypisanych do tej klasy.</p>
+        }
+    </div>
+</div>

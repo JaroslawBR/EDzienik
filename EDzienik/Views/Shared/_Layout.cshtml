@@ -29,21 +29,21 @@
 
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Administracja
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" asp-controller="Users" asp-action="Index">Użytkownicy</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-controller="SchoolClasses" asp-action="Index">Klasy</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Subjects" asp-action="Index">Przedmioty</a></li>
-                                    <li><a class="dropdown-item" asp-controller="ScheduleSlots" asp-action="Index">Plan Lekcji (Cały)</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-controller="Teachers" asp-action="Index">Nauczyciele</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Students" asp-action="Index">Uczniowie</a></li>
-                                </ul>
+                            @* USUNIĘTO DROPDOWN "ADMINISTRACJA" - LINKI SĄ TERAZ BEZPOŚREDNIO NA PASKU *@
+
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Users" asp-action="Index">Użytkownicy</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="SchoolClasses" asp-action="Index">Klasy</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Subjects" asp-action="Index">Przedmioty</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">Plan Lekcji</a>
+                            </li>               
+                            @* Wydarzenia zostają bez zmian *@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">Wydarzenia</a>
                             </li>

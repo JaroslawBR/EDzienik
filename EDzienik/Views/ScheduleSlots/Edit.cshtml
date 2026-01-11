@@ -2,6 +2,20 @@
 
 @{
     ViewData["Title"] = "Edycja lekcji";
+
+    // LOGIKA WIDOKU: Konwersja surowych timestampów na format godziny "HH:mm" dla inputów
+    string startVal = "";
+    string endVal = "";
+    try
+    {
+        // Pobieramy czas lokalny z timestampa, aby wyświetlić poprawną godzinę w formularzu
+        if (Model.StartUnix > 0)
+            startVal = DateTimeOffset.FromUnixTimeSeconds(Model.StartUnix).LocalDateTime.ToString("HH:mm");
+
+        if (Model.EndUnix > 0)
+            endVal = DateTimeOffset.FromUnixTimeSeconds(Model.EndUnix).LocalDateTime.ToString("HH:mm");
+    }
+    catch { }
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,9 +27,12 @@
         <h6 class="m-0 font-weight-bold text-warning">Zmiana parametrów zajęć</h6>
     </div>
     <div class="card-body">
-        <form asp-action="Edit">
+        <form asp-action="Edit" id="editSlotForm">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
+
+            <input type="hidden" asp-for="StartUnix" id="StartUnixHidden" />
+            <input type="hidden" asp-for="EndUnix" id="EndUnixHidden" />
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -40,32 +57,29 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Czas (Timestamp Unix)</label>
-                    <div class="input-group">
-                        <span class="input-group-text">Start</span>
-                        <input asp-for="StartUnix" class="form-control" />
-                        <span class="input-group-text">Koniec</span>
-                        <input asp-for="EndUnix" class="form-control" />
-                    </div>
-                    <small class="text-muted">Edycja bezpośrednia timestampów (Dla zaawansowanych).</small>
-                    <span asp-validation-for="StartUnix" class="text-danger"></span>
-                    <span asp-validation-for="EndUnix" class="text-danger"></span>
+                    <label class="form-label fw-bold">Godzina rozpoczęcia</label>
+                    <input type="time" class="form-control" id="startTimeDisplay" value="@startVal" required />
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
-                    <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    <label class="form-label fw-bold">Godzina zakończenia</label>
+                    <input type="time" class="form-control" id="endTimeDisplay" value="@endVal" required />
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
+                    <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
+                    <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                </div>
+                <div class="col-md-6 mb-3">
                     <label asp-for="SchoolClassId" class="form-label fw-bold">Klasa</label>
                     <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel</label>
-                    <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
-                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel</label>
+                <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
             </div>
 
             <hr class="my-4" />
@@ -86,4 +100,30 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // SKRYPT WIDOKU:
+        // Przy wysyłaniu formularza bierze godziny z inputów "time",
+        // zamienia je na Timestamp Unix (dla dzisiejszej daty) i wpisuje w ukryte pola.
+        // Dzięki temu kontroler dostaje to, czego oczekuje (long), a użytkownik widzi godziny.
+
+        document.getElementById('editSlotForm').addEventListener('submit', function (e) {
+            const startStr = document.getElementById('startTimeDisplay').value;
+            const endStr = document.getElementById('endTimeDisplay').value;
+
+            if (startStr) {
+                document.getElementById('StartUnixHidden').value = timeToUnix(startStr);
+            }
+            if (endStr) {
+                document.getElementById('EndUnixHidden').value = timeToUnix(endStr);
+            }
+        });
+
+        function timeToUnix(timeStr) {
+            const date = new Date(); // dzisiejsza data (tak samo działa Create)
+            const [hours, minutes] = timeStr.split(':');
+            date.setHours(hours, minutes, 0, 0);
+            return Math.floor(date.getTime() / 1000);
+        }
+    </script>
 }
