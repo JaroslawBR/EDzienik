@@ -4,49 +4,73 @@
     ViewData["Title"] = "Zarządzanie użytkownikami";
 }
 
-<h1>Zarządzanie użytkownikami</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Użytkownicy Systemu</h1>
+</div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Email</th>
-            <th>Imię</th>
-            <th>Nazwisko</th>
-            <th>Role</th>
-            <th>Akcje</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
-            <tr>
-                <td>@user.Email</td>
-                <td>@user.FirstName</td>
-                <td>@user.LastName</td>
-                <td>
-                    @if (user.Roles != null && user.Roles.Any())
+<div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Lista Kont i Uprawnienia</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Użytkownik</th>
+                        <th>Adres Email</th>
+                        <th>Role w systemie</th>
+                        <th class="text-end">Zarządzanie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
                     {
-                        @string.Join(", ", user.Roles)
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="fw-bold text-dark">
+                                        @user.FirstName @user.LastName
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-muted">@user.Email</span>
+                            </td>
+                            <td>
+                                @if (user.Roles != null && user.Roles.Any())
+                                {
+                                    foreach (var role in user.Roles)
+                                    {
+                                        var badgeColor = role == "Admin" ? "bg-danger" : (role == "Teacher" ? "bg-success" : "bg-info");
+                                        <span class="badge @badgeColor me-1">@role</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Brak ról</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (user.Roles != null && !user.Roles.Contains("Admin"))
+                                {
+                                    <a asp-action="MakeAdmin" asp-route-userId="@user.UserId" class="btn btn-sm btn-outline-danger shadow-sm"
+                                       onclick="return confirm('Czy na pewno nadać uprawnienia Administratora temu użytkownikowi?');">
+                                        <i class="fas fa-user-shield me-1"></i> Nadaj Admina
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-success small fw-bold"><i class="fas fa-check-circle"></i> Administrator</span>
+                                }
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <span class="text-muted">Brak ról</span>
-                    }
-                </td>
-                <td>
-                    @if (user.Roles != null && !user.Roles.Contains("Admin"))
-                    {
-                        <a asp-action="MakeAdmin" asp-route-userId="@user.UserId" class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('Czy na pewno nadać uprawnienia Administratora?');">
-                            Nadaj Admina
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="badge bg-success">Administrator</span>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -4,33 +4,55 @@
     ViewData["Title"] = "Lista nauczycieli";
 }
 
-<h1>Lista nauczycieli</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Nauczyciele</h1>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj nauczyciela
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Dodaj nauczyciela</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Imię i Nazwisko</th>
-            <th>Email</th>
-            <th>Akcje</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.User.Email)
-                </td>
-                <td>
-                    <span class="text-muted">Brak dodatkowych akcji</span>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Kadra Pedagogiczna</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nauczyciel</th>
+                        <th>Kontakt</th>
+                        <th class="text-end">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-dark">
+                                            @Html.DisplayFor(modelItem => item.User.FirstName) @Html.DisplayFor(modelItem => item.User.LastName)
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="mailto:@item.User.Email" class="text-decoration-none text-muted">
+                                    <i class="far fa-envelope me-1"></i> @Html.DisplayFor(modelItem => item.User.Email)
+                                </a>
+                            </td>
+                            <td class="text-end">
+                                <span class="text-muted small fst-italic">Brak dodatkowych akcji</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

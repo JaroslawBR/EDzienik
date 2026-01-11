@@ -1,47 +1,67 @@
 ﻿@model IEnumerable<EDzienik.Entities.SubjectAssignment>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Przypisania Przedmiotów";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Przydział Przedmiotów</h1>
+    <a asp-action="Create" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-link fa-sm text-white-50 me-1"></i> Nowe przypisanie
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Teacher)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SchoolClass)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Teacher.UserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SchoolClass.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow mb-4 border-left-secondary" style="border-left: 4px solid var(--secondary-color);">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-secondary">Nauczyciele i ich klasy</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nauczyciel</th>
+                        <th>Przedmiot</th>
+                        <th>Klasa</th>
+                        <th class="text-end">Opcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <i class="fas fa-chalkboard-teacher text-gray-400 me-2"></i>
+                                @if (item.Teacher != null && item.Teacher.User != null)
+                                {
+                                    <span class="fw-bold">@item.Teacher.User.FirstName @item.Teacher.User.LastName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">@item.TeacherId (ID)</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark border">
+                                    <i class="fas fa-book me-1"></i> @Html.DisplayFor(modelItem => item.Subject.Name)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-white">
+                                    <i class="fas fa-users me-1"></i> @Html.DisplayFor(modelItem => item.SchoolClass.Name)
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary"><i class="fas fa-pen"></i></a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info"><i class="fas fa-info"></i></a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
