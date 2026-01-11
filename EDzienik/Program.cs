@@ -1,7 +1,6 @@
 using EDzienik.Data;
 using EDzienik.Entities;
 using EDzienik.Entities.Enums;
-using EDzienik.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -49,11 +48,6 @@ static async Task SeedRolesAsync(IServiceProvider services)
 }
 
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
-{
-    await DevSeed.SeedAsync(app.Services);
-}
 
 using (var scope = app.Services.CreateScope())
 {
