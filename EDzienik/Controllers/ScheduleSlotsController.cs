@@ -218,10 +218,19 @@ namespace EDzienik.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,DayOfWeek,StartUnix,EndUnix,Room,SchoolClassId,SubjectId,TeacherId")] ScheduleSlot scheduleSlot)
         {
-            if (id != scheduleSlot.Id) return NotFound();
+            if (id != scheduleSlot.Id)
+            {
+                return NotFound();
+            }
+
+            ModelState.Remove(nameof(ScheduleSlot.SchoolClass));
+            ModelState.Remove(nameof(ScheduleSlot.Subject));
+            ModelState.Remove(nameof(ScheduleSlot.Teacher));
 
             if (scheduleSlot.EndUnix <= scheduleSlot.StartUnix)
+            {
                 ModelState.AddModelError("EndUnix", "Koniec musi być po początku.");
+            }
 
             if (ModelState.IsValid)
             {
@@ -235,11 +244,13 @@ namespace EDzienik.Controllers
                     if (overlap)
                     {
                         if (slot.TeacherId == scheduleSlot.TeacherId)
-                            ModelState.AddModelError("TeacherId", "Ten nauczyciel jest zajęty.");
+                            ModelState.AddModelError("TeacherId", "Ten nauczyciel ma już zajęcia w tym czasie!");
+
                         if (slot.SchoolClassId == scheduleSlot.SchoolClassId)
-                            ModelState.AddModelError("SchoolClassId", "Ta klasa jest zajęta.");
+                            ModelState.AddModelError("SchoolClassId", "Ta klasa ma już zajęcia w tym czasie.");
+
                         if (!string.IsNullOrEmpty(scheduleSlot.Room) && scheduleSlot.Room == slot.Room)
-                            ModelState.AddModelError("Room", "Sala jest zajęta.");
+                            ModelState.AddModelError("Room", $"Sala {slot.Room} jest zajęta.");
                     }
                 }
             }
@@ -253,15 +264,30 @@ namespace EDzienik.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ScheduleSlotExists(scheduleSlot.Id)) return NotFound();
-                    else throw;
+                    if (!ScheduleSlotExists(scheduleSlot.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
 
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
+
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", scheduleSlot.TeacherId);
+
             return View(scheduleSlot);
         }
 

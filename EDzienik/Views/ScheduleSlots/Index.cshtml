@@ -1,110 +1,161 @@
 ﻿@model IEnumerable<EDzienik.Entities.ScheduleSlot>
 
 @{
-    ViewData["Title"] = "Plan Lekcji";
+    ViewData["Title"] = "Plan lekcji";
+
+    // Funkcja pomocnicza do konwersji czasu Unix na czas polski
+    string GetPolishTime(long unixTime)
+    {
+        if (unixTime <= 0) return "--:--";
+
+        var timeUtc = DateTimeOffset.FromUnixTimeSeconds(unixTime);
+
+        TimeZoneInfo polishZone;
+        try
+        {
+            // Próbujemy znaleźć strefę czasową dla Windows
+            polishZone = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+        }
+        catch
+        {
+            try
+            {
+                // Jeśli nie ma (np. Linux/Mac), próbujemy standard IANA
+                polishZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw");
+            }
+            catch
+            {
+                // Ostateczność: czas lokalny serwera (jeśli nie uda się znaleźć strefy)
+                polishZone = TimeZoneInfo.Local;
+            }
+        }
+
+        return TimeZoneInfo.ConvertTime(timeUtc, polishZone).ToString("HH:mm");
+    }
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            @if (User.IsInRole("Admin"))
-            {
-                @:Plan Lekcji (Całościowy)
-            }
-            else
-            {
-                @:Plan Zajęć
-            }
-        </h1>
-
-        @if (User.IsInRole("Admin"))
-        {
-            <a asp-action="Create" class="btn btn-success shadow-sm">
-                <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj wpis
-            </a>
-        }
-    </div>
+    <h1 class="h3 mb-0 text-gray-800">Plan lekcji</h1>
     @if (User.IsInRole("Admin"))
     {
-        <div class="card mb-4 border-left-primary shadow-sm" style="border-left: 4px solid var(--primary-color);">
-            <div class="card-body">
-                <form asp-action="Index" method="get" class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Filtruj wg Klasy:</label>
-                        <select name="schoolClassId" class="form-select" asp-items="ViewBag.SchoolClassId" onchange="this.form.submit()">
-                            <option value="">-- Wszystkie klasy --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">Filtruj wg Nauczyciela:</label>
-                        <select name="teacherId" class="form-select" asp-items="ViewBag.TeacherId" onchange="this.form.submit()">
-                            <option value="">-- Wszyscy nauczyciele --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <a asp-action="Index" class="btn btn-secondary w-100">
-                            <i class="fas fa-undo me-1"></i> Resetuj filtry
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj lekcję
+        </a>
     }
 </div>
 
-<div class="card shadow mb-4 border-left-success" style="border-left: 4px solid var(--success-color);">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-success">Harmonogram Zajęć</h6>
+@if (User.IsInRole("Admin"))
+{
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtrowanie</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Klasa</label>
+                    <select name="schoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId">
+                        <option value="">-- Wszystkie --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nauczyciel</label>
+                    <select name="teacherId" class="form-control" asp-items="ViewBag.TeacherId">
+                        <option value="">-- Wszyscy --</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-secondary w-100">Filtruj</button>
+                </div>
+            </form>
+        </div>
     </div>
+}
+
+<div class="card shadow mb-4">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle" width="100%" cellspacing="0">
-                <thead class="bg-light text-dark">
+            <table class="table table-bordered table-striped" width="100%" cellspacing="0">
+                <thead>
                     <tr>
-                        <th class="text-center">Dzień</th>
-                        <th class="text-center">Godziny</th>
+                        <th>Dzień</th>
+                        <th>Godziny</th>
                         <th>Przedmiot</th>
-                        <th>Sala</th>
                         <th>Klasa</th>
+                        <th>Sala</th>
                         <th>Nauczyciel</th>
-                        <th class="text-end">Opcje</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th>Akcje</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td class="text-center fw-bold text-primary">
-                                @Html.DisplayFor(modelItem => item.DayOfWeek)
-                            </td>
-                            <td class="text-center font-monospace">
-                                @DateTimeOffset.FromUnixTimeSeconds(item.StartUnix).ToString("HH:mm") -
-                                @DateTimeOffset.FromUnixTimeSeconds(item.EndUnix).ToString("HH:mm")
-                            </td>
                             <td class="fw-bold">
+                                @switch (item.DayOfWeek)
+                                {
+                                    case DayOfWeek.Monday:
+                                        <span class="text-primary">Poniedziałek</span>
+                                        ; break;
+                                    case DayOfWeek.Tuesday:
+
+                                        <span class="text-primary">Wtorek</span>
+                                        ; break;
+                                    case DayOfWeek.Wednesday:
+
+                                        <span class="text-primary">Środa</span>
+                                        ; break;
+                                    case DayOfWeek.Thursday:
+
+                                        <span class="text-primary">Czwartek</span>
+                                        ; break;
+                                    case DayOfWeek.Friday:
+
+                                        <span class="text-primary">Piątek</span>
+                                        ; break;
+                                    case DayOfWeek.Saturday:
+
+                                        <span class="text-danger">Sobota</span>
+                                        ; break;
+                                    case DayOfWeek.Sunday:
+
+                                        <span class="text-danger">Niedziela</span>
+                                        ; break;
+                                    default:
+
+                                        @item.DayOfWeek
+                                        ; break;
+                                }
+                            </td>
+                            <td>
+                                @* UŻYCIE POPRAWIONEJ FUNKCJI *@
+                                @GetPolishTime(item.StartUnix) – @GetPolishTime(item.EndUnix)
+                            </td>
+                            <td>
                                 @Html.DisplayFor(modelItem => item.Subject.Name)
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border">
-                                    <i class="fas fa-door-open me-1"></i> @Html.DisplayFor(modelItem => item.Room)
-                                </span>
+                                @Html.DisplayFor(modelItem => item.SchoolClass.Name)
                             </td>
                             <td>
-                                <span class="badge bg-info">@Html.DisplayFor(modelItem => item.SchoolClass.Name)</span>
+                                @Html.DisplayFor(modelItem => item.Room)
                             </td>
-                            <td class="small text-muted">
-                                <i class="fas fa-user-tie me-1"></i>
-                                @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
-                            </td>
-                            <td class="text-end">
-                                @if (User.IsInRole("Admin"))
+                            <td>
+                                @if (item.Teacher?.User != null)
                                 {
-                                    <div class="btn-group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary"><i class="fas fa-pen"></i></a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
-                                    </div>
+                                    @($"{item.Teacher.User.LastName} {item.Teacher.User.FirstName}")
                                 }
                             </td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edytuj</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Usuń</a>
+                                </td>
+                            }
                         </tr>
                     }
                 </tbody>

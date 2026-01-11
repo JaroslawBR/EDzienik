@@ -90,6 +90,10 @@ namespace EDzienik.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,TeacherId,SubjectId,SchoolClassId")] SubjectAssignment subjectAssignment)
         {
+            ModelState.Remove(nameof(SubjectAssignment.SchoolClass));
+            ModelState.Remove(nameof(SubjectAssignment.Subject));
+            ModelState.Remove(nameof(SubjectAssignment.Teacher));
+
             bool exists = await _context.SubjectAssignments.AnyAsync(s =>
                 s.TeacherId == subjectAssignment.TeacherId &&
                 s.SubjectId == subjectAssignment.SubjectId &&
@@ -162,6 +166,22 @@ namespace EDzienik.Controllers
             if (id != subjectAssignment.Id)
             {
                 return NotFound();
+            }
+
+            ModelState.Remove(nameof(SubjectAssignment.SchoolClass));
+            ModelState.Remove(nameof(SubjectAssignment.Subject));
+            ModelState.Remove(nameof(SubjectAssignment.Teacher));
+
+            bool exists = await _context.SubjectAssignments.AnyAsync(s =>
+                s.Id != subjectAssignment.Id &&
+                s.TeacherId == subjectAssignment.TeacherId &&
+                s.SubjectId == subjectAssignment.SubjectId &&
+                s.SchoolClassId == subjectAssignment.SchoolClassId
+            );
+
+            if (exists)
+            {
+                ModelState.AddModelError("", "Takie przypisanie już istnieje.");
             }
 
             if (ModelState.IsValid)
