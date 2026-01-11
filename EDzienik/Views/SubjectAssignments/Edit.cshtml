@@ -1,44 +1,60 @@
 ﻿@model EDzienik.Entities.SubjectAssignment
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edycja przydziału";
 }
 
-<h1>Edit</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Edycja przydziału</h1>
+</div>
 
-<h4>SubjectAssignment</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="TeacherId" class="control-label"></label>
-                <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
-                <span asp-validation-for="TeacherId" class="text-danger"></span>
+    <div class="col-md-6">
+        <div class="card shadow mb-4 border-left-secondary">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-secondary">Zmień dane przydziału</h6>
             </div>
-            <div class="form-group">
-                <label asp-for="SubjectId" class="control-label"></label>
-                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
-                <span asp-validation-for="SubjectId" class="text-danger"></span>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="form-group mb-3">
+                        <label asp-for="SchoolClassId" class="form-label fw-bold">Klasa</label>
+                        <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                        <span asp-validation-for="SchoolClassId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
+                        <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                        <span asp-validation-for="SubjectId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel</label>
+                        <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                        <span asp-validation-for="TeacherId" class="text-danger"></span>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">
+                            <i class="fas fa-arrow-left me-1"></i> Powrót
+                        </a>
+                        <button type="submit" class="btn btn-secondary shadow-sm">
+                            <i class="fas fa-save me-1"></i> Zapisz
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="SchoolClassId" class="control-label"></label>
-                <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
-                <span asp-validation-for="SchoolClassId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

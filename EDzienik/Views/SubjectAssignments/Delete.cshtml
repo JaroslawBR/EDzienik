@@ -1,39 +1,44 @@
 ﻿@model EDzienik.Entities.SubjectAssignment
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń przydział";
 }
 
-<h1>Delete</h1>
+<div class="d-flex justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-left-danger">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="m-0 fw-bold">Usuń przydział</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning text-center">
+                    Czy na pewno chcesz usunąć to powiązanie?
+                </div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>SubjectAssignment</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Teacher)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Teacher.UserId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Subject)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Subject.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SchoolClass)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SchoolClass.Name)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+                <dl class="row mb-4">
+                    <dt class="col-sm-4 text-end text-muted">Klasa:</dt>
+                    <dd class="col-sm-8 fw-bold">@Html.DisplayFor(model => model.SchoolClass.Name)</dd>
+
+                    <dt class="col-sm-4 text-end text-muted">Przedmiot:</dt>
+                    <dd class="col-sm-8 fw-bold">@Html.DisplayFor(model => model.Subject.Name)</dd>
+
+                    <dt class="col-sm-4 text-end text-muted">Nauczyciel:</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.Teacher?.User != null)
+                        {
+                            @($"{Model.Teacher.User.LastName} {Model.Teacher.User.FirstName}")
+                        }
+                    </dd>
+                </dl>
+
+                <form asp-action="Delete" class="d-flex justify-content-center">
+                    <input type="hidden" asp-for="Id" />
+                    <a asp-action="Index" class="btn btn-secondary me-2">Anuluj</a>
+                    <button type="submit" class="btn btn-danger shadow-sm">
+                        <i class="fas fa-trash me-1"></i> Usuń
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

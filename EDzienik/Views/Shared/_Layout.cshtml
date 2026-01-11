@@ -12,11 +12,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EDzienik.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100 bg-light">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">EDziennik</a>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom shadow-sm mb-3">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-graduation-cap me-2"></i>EDziennik
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -24,65 +26,96 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Strona Główna</a>
-                        </li>
-
-                        @* NOWA ZAKŁADKA DLA WSZYSTKICH *@
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">Nauczyciele</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-1 text-secondary"></i> Pulpit
+                            </a>
                         </li>
 
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Users" asp-action="Index">Użytkownicy</a>
+                                <a class="nav-link text-dark" asp-controller="Grades" asp-action="Index">
+                                    <i class="fas fa-pen-fancy me-1 text-success"></i> Dziennik Ocen
+                                </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolClasses" asp-action="Index">Klasy</a>
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cogs me-1 text-secondary"></i> Zarządzanie
+                                </a>
+                                <ul class="dropdown-menu shadow border-0" aria-labelledby="adminDropdown">
+                                    <li><h6 class="dropdown-header text-uppercase small fw-bold text-gray-500">Użytkownicy</h6></li>
+                                    <li><a class="dropdown-item" asp-controller="Users" asp-action="Index"><i class="fas fa-users fa-fw me-2 text-primary"></i>Konta</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Teachers" asp-action="Index"><i class="fas fa-chalkboard-teacher fa-fw me-2 text-info"></i>Nauczyciele</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Students" asp-action="Index"><i class="fas fa-user-graduate fa-fw me-2 text-success"></i>Uczniowie</a></li>
+
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header text-uppercase small fw-bold text-gray-500">Szkoła</h6></li>
+
+                                    <li><a class="dropdown-item" asp-controller="SchoolClasses" asp-action="Index"><i class="fas fa-layer-group fa-fw me-2 text-warning"></i>Klasy</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Subjects" asp-action="Index"><i class="fas fa-book fa-fw me-2 text-danger"></i>Przedmioty</a></li>
+                                    <li><a class="dropdown-item" asp-controller="SubjectAssignments" asp-action="Index"><i class="fas fa-link fa-fw me-2 text-secondary"></i>Przydziały</a></li>
+                                    <li><a class="dropdown-item" asp-controller="ScheduleSlots" asp-action="Index"><i class="fas fa-calendar-alt fa-fw me-2 text-dark"></i>Plan Lekcji</a></li>
+                                </ul>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Subjects" asp-action="Index">Przedmioty</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">Plan Lekcji</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">Wydarzenia</a>
-                            </li>
-                            @* W przypadku Admina warto dodać też link do Students, jeśli go tu nie było, 
-                               ale w Twoim oryginalnym pliku go nie widziałem w sekcji Admina,
-                               co potwierdza, że StudentsController był nieco 'ukryty' *@
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Students" asp-action="Index">Uczniowie</a>
+                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">
+                                    <i class="fas fa-bullhorn me-1 text-secondary"></i> Wydarzenia
+                                </a>
                             </li>
                         }
 
                         @if (User.IsInRole("Teacher"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">Mój Plan</a>
+                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">
+                                    <i class="fas fa-calendar-day me-1 text-primary"></i> Mój Plan
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolClasses" asp-action="Index">Moje Klasy</a>
+                                <a class="nav-link text-dark" asp-controller="Grades" asp-action="Index">
+                                    <i class="fas fa-pen-fancy me-1 text-success"></i> Dziennik
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Grades" asp-action="Index">Dziennik Ocen</a>
+                                <a class="nav-link text-dark" asp-controller="SubjectAssignments" asp-action="Index">
+                                    <i class="fas fa-list-ul me-1 text-secondary"></i> Moje Klasy
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">Wydarzenia</a>
+                                <a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">
+                                    <i class="fas fa-chalkboard-teacher me-1 text-info"></i> Nauczyciele
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">
+                                    <i class="fas fa-bullhorn me-1 text-danger"></i> Wydarzenia
+                                </a>
                             </li>
                         }
 
                         @if (User.IsInRole("Student"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">Plan Lekcji</a>
+                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">
+                                    <i class="fas fa-clock me-1 text-success"></i> Plan Lekcji
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Grades" asp-action="Index">Moje Oceny</a>
+                                <a class="nav-link text-dark" asp-controller="Grades" asp-action="Index">
+                                    <i class="fas fa-star me-1 text-primary"></i> Oceny
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">Ogłoszenia</a>
+                                <a class="nav-link text-dark" asp-controller="Teachers" asp-action="Index">
+                                    <i class="fas fa-chalkboard-teacher me-1 text-info"></i> Nauczyciele
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">
+                                    <i class="fas fa-info-circle me-1 text-info"></i> Ogłoszenia
+                                </a>
                             </li>
                         }
 
@@ -92,15 +125,15 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container mb-5">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - EDziennik - <a asp-area="" asp-controller="Home" asp-action="Privacy">Polityka Prywatności</a>
+    <footer class="border-top footer text-muted mt-auto bg-white py-3">
+        <div class="container text-center">
+            &copy; 2026 - <strong>EDziennik</strong> - System zarządzania szkołą
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

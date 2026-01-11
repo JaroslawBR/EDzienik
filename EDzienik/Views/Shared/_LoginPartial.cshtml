@@ -7,25 +7,34 @@
 @{
     var user = await UserManager.GetUserAsync(User);
     var displayName = user != null ? $"{user.FirstName} {user.LastName}" : User.Identity?.Name;
+
+    var iconClass = "text-secondary";
+    if (User.IsInRole("Admin")) iconClass = "text-danger";
+    else if (User.IsInRole("Teacher")) iconClass = "text-primary";
+    else if (User.IsInRole("Student")) iconClass = "text-success";
 }
 
-<ul class="navbar-nav">
+<ul class="navbar-nav align-items-center">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Zarządzaj">
-                <i class="fas fa-user-circle"></i> Witaj, <strong>@displayName</strong>!
-            </a>
+        <li class="nav-item me-2">
+            <span class="nav-link text-dark" title="Zalogowany jako">
+                <i class="fas fa-user-circle @iconClass me-1"></i>
+                <span class="fw-bold">@displayName</span>
+            </span>
         </li>
-        <li class="nav-item">
+        <li class="nav-item border-start ps-2 ms-1">
             <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/Identity/Account/Login">
-                <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">
-                    <i class="fas fa-sign-out-alt"></i> Wyloguj
+                <button id="logout" type="submit" class="nav-link btn btn-link text-muted p-0 px-2" title="Wyloguj się">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
         </li>
     }
     else
     {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Zaloguj</a>
+        </li>
     }
 </ul>

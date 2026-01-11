@@ -23,24 +23,112 @@ namespace EDzienik.Controllers
         }
 
         // GET: Grades
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? schoolClassId, int? subjectId, int? studentId, int? teacherId)
         {
             var teacher = await GetLoggedTeacherAsync();
             var student = await GetLoggedStudentAsync();
 
             var query = _context.Grades
                 .Include(g => g.Student).ThenInclude(s => s.User)
+                .Include(g => g.Student).ThenInclude(s => s.SchoolClass)
                 .Include(g => g.Subject)
                 .Include(g => g.Teacher).ThenInclude(t => t.User)
                 .AsQueryable();
 
+
             if (teacher != null)
             {
                 query = query.Where(g => g.TeacherId == teacher.Id);
+
+                var myClassIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SchoolClassId).Distinct().ToListAsync();
+
+                var myClasses = await _context.SchoolClasses
+                    .Where(c => myClassIds.Contains(c.Id))
+                    .OrderBy(c => c.Name).ToListAsync();
+
+                var myStudentsQuery = _context.Students
+                    .Include(s => s.User).Include(s => s.SchoolClass)
+                    .Where(s => myClassIds.Contains(s.SchoolClassId));
+
+                if (schoolClassId.HasValue)
+                {
+                    myStudentsQuery = myStudentsQuery.Where(s => s.SchoolClassId == schoolClassId.Value);
+                }
+
+                var myStudents = await myStudentsQuery
+                    .OrderBy(s => s.User.LastName)
+                    .Select(s => new { Id = s.Id, FullName = $"{s.User.LastName} {s.User.FirstName} ({s.SchoolClass.Name})" })
+                    .ToListAsync();
+
+                var mySubjectIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SubjectId).Distinct().ToListAsync();
+
+                var mySubjects = await _context.Subjects
+                    .Where(s => mySubjectIds.Contains(s.Id))
+                    .OrderBy(s => s.Name).ToListAsync();
+
+                ViewData["SchoolClassId"] = new SelectList(myClasses, "Id", "Name", schoolClassId);
+                ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName", studentId);
+                ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name", subjectId);
             }
             else if (student != null)
             {
                 query = query.Where(g => g.StudentId == student.Id);
+
+                var teachers = await _context.Teachers.Include(t => t.User)
+                    .OrderBy(t => t.User.LastName)
+                    .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" })
+                    .ToListAsync();
+
+                var subjects = await _context.Subjects.OrderBy(s => s.Name).ToListAsync();
+
+                ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", teacherId);
+                ViewData["SubjectId"] = new SelectList(subjects, "Id", "Name", subjectId);
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                var classes = await _context.SchoolClasses.OrderBy(c => c.Name).ToListAsync();
+                var subjects = await _context.Subjects.OrderBy(s => s.Name).ToListAsync();
+                var teachers = await _context.Teachers.Include(t => t.User)
+                    .OrderBy(t => t.User.LastName)
+                    .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" })
+                    .ToListAsync();
+
+                var studentsQuery = _context.Students.Include(s => s.User).Include(s => s.SchoolClass).AsQueryable();
+                if (schoolClassId.HasValue)
+                {
+                    studentsQuery = studentsQuery.Where(s => s.SchoolClassId == schoolClassId.Value);
+                }
+                var students = await studentsQuery
+                    .OrderBy(s => s.User.LastName)
+                    .Select(s => new { Id = s.Id, FullName = $"{s.User.LastName} {s.User.FirstName} ({s.SchoolClass.Name})" })
+                    .ToListAsync();
+
+                ViewData["SchoolClassId"] = new SelectList(classes, "Id", "Name", schoolClassId);
+                ViewData["StudentId"] = new SelectList(students, "Id", "FullName", studentId);
+                ViewData["SubjectId"] = new SelectList(subjects, "Id", "Name", subjectId);
+                ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", teacherId);
+            }
+
+
+            if (schoolClassId.HasValue)
+            {
+                query = query.Where(g => g.Student.SchoolClassId == schoolClassId.Value);
+            }
+            if (studentId.HasValue)
+            {
+                query = query.Where(g => g.StudentId == studentId.Value);
+            }
+            if (subjectId.HasValue)
+            {
+                query = query.Where(g => g.SubjectId == subjectId.Value);
+            }
+            if (teacherId.HasValue)
+            {
+                query = query.Where(g => g.TeacherId == teacherId.Value);
             }
 
             return View(await query.OrderByDescending(g => g.CreatedUnix).ToListAsync());
