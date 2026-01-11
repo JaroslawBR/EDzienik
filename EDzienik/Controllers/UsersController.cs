@@ -191,14 +191,16 @@ namespace EDzienik.Controllers
 
             if (user != null)
             {
-
                 if (_userManager.GetUserId(User) == user.Id)
                 {
                     TempData["Error"] = "Nie możesz usunąć swojego konta.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                await _userManager.DeleteAsync(user);
+                var result = await _userManager.DeleteAsync(user);
+
+                if (result.Succeeded)
+                    TempData["Success"] = "Usunięto użytkownika.";
             }
 
             return RedirectToAction(nameof(Index));

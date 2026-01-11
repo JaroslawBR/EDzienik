@@ -10,6 +10,16 @@
         <i class="fas fa-user-plus me-1"></i> Utwórz konto
     </a>
 </div>
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success" role="alert">@success</div>
+}
+
 
 <div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
     <div class="card-header py-3">
@@ -66,12 +76,14 @@
                                         <i class="fas fa-pen"></i>
                                     </a>
 
-                                    <form asp-action="Delete" asp-route-id="@user.UserId" method="post" class="d-inline m-0 p-0">
+                                    <form asp-action="Delete" asp-route-id="@user.UserId" method="post" class="d-inline m-0">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Na pewno usunąć tego użytkownika?');">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+
                                 </div>
                             </td>                            
                         </tr>
