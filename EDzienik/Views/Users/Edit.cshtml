@@ -2,6 +2,13 @@
 
 @{
     ViewData["Title"] = "Edycja użytkownika";
+
+    var rolesList = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Student", Text = "Uczeń" },
+        new SelectListItem { Value = "Teacher", Text = "Nauczyciel" },
+        new SelectListItem { Value = "Admin", Text = "Administrator" }
+    };
 }
 
 <div class="container py-4">
@@ -80,7 +87,9 @@
 
                 <div class="col-12">
                     <label class="form-label">Rola</label>
-                    <select asp-for="Role" asp-items="ViewBag.Roles" class="form-control"></select>
+                    <select asp-for="Role" class="form-control" asp-items="rolesList">
+                        <option value="">-- Wybierz rolę --</option>
+                    </select>
                     <span asp-validation-for="Role" class="text-danger small"></span>
                 </div>
 
