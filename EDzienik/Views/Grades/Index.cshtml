@@ -1,54 +1,94 @@
 ﻿@model IEnumerable<EDzienik.Entities.Grade>
 
 @{
-    ViewData["Title"] = "Oceny";
+    ViewData["Title"] = "Dziennik Ocen";
 }
 
-<h1>Oceny</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dziennik Ocen</h1>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Wystaw nową ocenę
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-success">Wystaw nową ocenę</a>
-</p>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Data</th>
-            <th>Przedmiot</th>
-            <th>Uczeń</th>
-            <th>Ocena</th>
-            <th>Opis</th>
-            <th>Nauczyciel</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @DateTimeOffset.FromUnixTimeSeconds(item.CreatedUnix).ToString("dd.MM.yyyy HH:mm")
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Subject.Name)
-                </td>
-                <td>
-                    @(item.Student.User != null ? $"{item.Student.User.FirstName} {item.Student.User.LastName}" : "Brak danych")
-                </td>
-                <td style="font-weight: bold; font-size: 1.1em;">
-                    @Html.DisplayFor(modelItem => item.Value)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Description)
-                </td>
-                <td>
-                    @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edytuj</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Szczegóły</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Usuń</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Lista Ostatnich Ocen</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="gradesTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 15%">Data</th>
+                        <th>Przedmiot</th>
+                        <th>Uczeń</th>
+                        <th class="text-center">Ocena</th>
+                        <th>Opis</th>
+                        <th>Nauczyciel</th>
+                        <th class="text-end">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="align-middle">
+                                <i class="far fa-calendar-alt text-muted me-1"></i>
+                                @DateTimeOffset.FromUnixTimeSeconds(item.CreatedUnix).ToString("dd.MM.yyyy")
+                                <small class="d-block text-muted">@DateTimeOffset.FromUnixTimeSeconds(item.CreatedUnix).ToString("HH:mm")</small>
+                            </td>
+                            <td class="align-middle fw-bold text-dark">
+                                @Html.DisplayFor(modelItem => item.Subject.Name)
+                            </td>
+                            <td class="align-middle">
+                                @if (item.Student.User != null)
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded-circle text-primary d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px; font-weight: bold;">
+                                            @item.Student.User.FirstName[0]@item.Student.User.LastName[0]
+                                        </div>
+                                        <div>
+                                            @item.Student.User.FirstName @item.Student.User.LastName
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Brak danych</span>
+                                }
+                            </td>
+                            <td class="align-middle text-center">
+                                @{
+                                    var badgeClass = item.Value >= 4 ? "bg-success" : (item.Value <= 2 ? "bg-danger" : "bg-warning text-dark");
+                                }
+                                <span class="badge @badgeClass fs-6 rounded-pill" style="width: 40px;">
+                                    @Html.DisplayFor(modelItem => item.Value)
+                                </span>
+                            </td>
+                            <td class="align-middle text-muted small">
+                                @Html.DisplayFor(modelItem => item.Description)
+                            </td>
+                            <td class="align-middle small">
+                                @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
+                            </td>
+                            <td class="align-middle text-end">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edytuj">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Szczegóły">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

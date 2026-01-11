@@ -1,71 +1,70 @@
 ﻿@model IEnumerable<EDzienik.Entities.ScheduleSlot>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Plan Lekcji";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Plan Lekcji (Całościowy)</h1>
+    <a asp-action="Create" class="btn btn-success shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj wpis
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DayOfWeek)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartUnix)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndUnix)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Room)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SchoolClass)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Subject)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Teacher)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DayOfWeek)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartUnix)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndUnix)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Room)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SchoolClass.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Subject.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Teacher.UserId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="card shadow mb-4 border-left-success" style="border-left: 4px solid var(--success-color);">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Harmonogram Zajęć</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle" width="100%" cellspacing="0">
+                <thead class="bg-light text-dark">
+                    <tr>
+                        <th class="text-center">Dzień</th>
+                        <th class="text-center">Godziny</th>
+                        <th>Przedmiot</th>
+                        <th>Sala</th>
+                        <th>Klasa</th>
+                        <th>Nauczyciel</th>
+                        <th class="text-end">Opcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center fw-bold text-primary">
+                                @Html.DisplayFor(modelItem => item.DayOfWeek)
+                            </td>
+                            <td class="text-center font-monospace">
+                                @DateTimeOffset.FromUnixTimeSeconds(item.StartUnix).ToString("HH:mm") -
+                                @DateTimeOffset.FromUnixTimeSeconds(item.EndUnix).ToString("HH:mm")
+                            </td>
+                            <td class="fw-bold">
+                                @Html.DisplayFor(modelItem => item.Subject.Name)
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="fas fa-door-open me-1"></i> @Html.DisplayFor(modelItem => item.Room)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">@Html.DisplayFor(modelItem => item.SchoolClass.Name)</span>
+                            </td>
+                            <td class="small text-muted">
+                                <i class="fas fa-user-tie me-1"></i>
+                                @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary"><i class="fas fa-pen"></i></a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

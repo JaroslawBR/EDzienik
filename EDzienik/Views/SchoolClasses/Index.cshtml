@@ -4,38 +4,53 @@
     ViewData["Title"] = "Lista klas";
 }
 
-<h1>Lista klas</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Klasy</h1>
+    <a asp-action="Create" class="btn btn-info text-white shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj nową klasę
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Dodaj nową klasę</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SchoolYear)
-            </th>
-            <th>Akcje</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.SchoolYear)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edytuj</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Usuń</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="card shadow mb-4 border-left-info" style="border-left: 4px solid var(--info-color);">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-info">Zdefiniowane Klasy</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nazwa Klasy</th>
+                        <th>Rok Szkolny</th>
+                        <th class="text-end">Zarządzanie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-info text-white fs-6 px-3 py-2 rounded-pill shadow-sm">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </span>
+                            </td>
+                            <td class="text-secondary fw-bold">
+                                <i class="far fa-calendar-check me-1"></i> @Html.DisplayFor(modelItem => item.SchoolYear)
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Edytuj">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -152,6 +152,11 @@ namespace EDzienik.Controllers
                 ModelState.AddModelError("Value", "Ocena musi być z zakresu 1-6.");
             }
 
+            ModelState.Remove("Student");
+            ModelState.Remove("Subject");
+            ModelState.Remove("Teacher");
+
+
             if (ModelState.IsValid)
             {
                 _context.Add(grade);
@@ -160,9 +165,9 @@ namespace EDzienik.Controllers
             }
 
             var mySubjects = await _context.SubjectAssignments
-                .Where(sa => sa.TeacherId == teacher.Id)
-                .Include(sa => sa.Subject)
-                .Select(sa => sa.Subject).Distinct().ToListAsync();
+        .Where(sa => sa.TeacherId == teacher.Id)
+        .Include(sa => sa.Subject)
+        .Select(sa => sa.Subject).Distinct().ToListAsync();
 
             var myClassIds = await _context.SubjectAssignments
                 .Where(sa => sa.TeacherId == teacher.Id)
