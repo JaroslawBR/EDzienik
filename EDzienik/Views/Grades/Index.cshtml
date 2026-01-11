@@ -45,11 +45,15 @@
                                 @Html.DisplayFor(modelItem => item.Subject.Name)
                             </td>
                             <td class="align-middle">
-                                @if (item.Student.User != null)
+                                @if (item.Student?.User != null)
                                 {
+                                    /* Zabezpieczenie przed brakiem imienia/nazwiska */
+                                    var sFirst = item.Student.User.FirstName?.FirstOrDefault().ToString() ?? "?";
+                                    var sLast = item.Student.User.LastName?.FirstOrDefault().ToString() ?? "?";
+
                                     <div class="d-flex align-items-center">
                                         <div class="bg-light rounded-circle text-primary d-flex justify-content-center align-items-center me-2" style="width: 35px; height: 35px; font-weight: bold;">
-                                            @item.Student.User.FirstName[0]@item.Student.User.LastName[0]
+                                            @sFirst@sLast
                                         </div>
                                         <div>
                                             @item.Student.User.FirstName @item.Student.User.LastName
@@ -58,7 +62,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted">Brak danych</span>
+                                    <span class="text-muted">Brak danych ucznia</span>
                                 }
                             </td>
                             <td class="align-middle text-center">
@@ -73,7 +77,15 @@
                                 @Html.DisplayFor(modelItem => item.Description)
                             </td>
                             <td class="align-middle small">
-                                @(item.Teacher.User != null ? $"{item.Teacher.User.LastName} {item.Teacher.User.FirstName[0]}." : "Nauczyciel")
+                                @if (item.Teacher?.User != null)
+                                {
+                                    var tFirstInitial = item.Teacher.User.FirstName?.FirstOrDefault().ToString() ?? "";
+                                    @($"{item.Teacher.User.LastName} {tFirstInitial}.")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Nauczyciel</span>
+                                }
                             </td>
                             <td class="align-middle text-end">
                                 <div class="btn-group">
@@ -82,14 +94,6 @@
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edytuj">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                    }
-
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Szczegóły">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
-
-                                    @if (User.IsInRole("Teacher") || User.IsInRole("Admin"))
-                                    {
                                         <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
                                             <i class="fas fa-trash"></i>
                                         </a>

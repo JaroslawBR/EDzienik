@@ -80,39 +80,19 @@ namespace EDzienik.Controllers
         // GET: SchoolEvents/Create
         public async Task<IActionResult> Create()
         {
-            var teacher = await GetLoggedTeacherAsync();
+            ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
 
-            if (teacher == null && !User.IsInRole("Admin"))
+            if (User.IsInRole("Admin"))
             {
-                return Forbid();
-            }
-
-            if (teacher != null)
-            {
-                var myClassIds = await _context.SubjectAssignments
-                    .Where(sa => sa.TeacherId == teacher.Id)
-                    .Select(sa => sa.SchoolClassId)
-                    .Distinct()
-                    .ToListAsync();
-
-                var myClasses = await _context.SchoolClasses
-                    .Where(c => myClassIds.Contains(c.Id))
-                    .ToListAsync();
-
-                ViewData["SchoolClassId"] = new SelectList(myClasses, "Id", "Name");
+                var teachers = _context.Teachers.Include(t => t.User)
+                    .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" });
+                ViewData["OrganizerId"] = new SelectList(teachers, "Id", "FullName");
             }
             else
             {
-                ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name");
+                var teacher = await GetLoggedTeacherAsync();
+                if (teacher == null) return Forbid(); 
 
-                var teachers = _context.Teachers
-                    .Include(t => t.User)
-                    .Select(t => new {
-                        Id = t.Id,
-                        FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
-                    })
-                    .ToList();
-                ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName");
             }
 
             return View();
@@ -123,25 +103,40 @@ namespace EDzienik.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Content,Date,Type,SchoolClassId")] SchoolEvent schoolEvent)
+        public async Task<IActionResult> Create([Bind("Id,Name,Date,EventType,Description,SchoolClassId,TeacherId")] SchoolEvent schoolEvent)
         {
             var teacher = await GetLoggedTeacherAsync();
 
-            if (teacher != null)
+            if (User.IsInRole("Admin"))
             {
-                var myClassIds = await _context.SubjectAssignments
-                    .Where(sa => sa.TeacherId == teacher.Id)
-                    .Select(sa => sa.SchoolClassId)
-                    .Distinct()
-                    .ToListAsync();
 
-                if (!myClassIds.Contains(schoolEvent.SchoolClassId))
+                if (schoolEvent.TeacherId == 0 && Request.Form.ContainsKey("OrganizerId"))
+                {
+                    int.TryParse(Request.Form["OrganizerId"], out int formTeacherId);
+                    schoolEvent.TeacherId = formTeacherId;
+                }
+
+                if (schoolEvent.TeacherId == 0)
+                {
+                    ModelState.AddModelError("TeacherId", "Wybierz organizatora.");
+                }
+            }
+            else
+            {
+                if (teacher != null)
+                {
+                    schoolEvent.TeacherId = teacher.Id;
+                    ModelState.Remove("TeacherId");
+                }
+                else
+                {
                     return Forbid();
-
-                schoolEvent.TeacherId = teacher.Id;
+                }
             }
 
-            if (teacher == null && !User.IsInRole("Admin")) return Forbid();
+            ModelState.Remove("Teacher");
+            ModelState.Remove("SchoolClass");
+            ModelState.Remove("OrganizerId"); 
 
             if (ModelState.IsValid)
             {
@@ -151,6 +146,15 @@ namespace EDzienik.Controllers
             }
 
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", schoolEvent.SchoolClassId);
+
+            if (User.IsInRole("Admin"))
+            {
+                var teachers = await _context.Teachers.Include(t => t.User)
+                   .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" })
+                   .ToListAsync();
+                ViewData["OrganizerId"] = new SelectList(teachers, "Id", "FullName", schoolEvent.TeacherId);
+            }
+
             return View(schoolEvent);
         }
 
@@ -327,3 +331,4 @@ namespace EDzienik.Controllers
         }
     }
 }
+
