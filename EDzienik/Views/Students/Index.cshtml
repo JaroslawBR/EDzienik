@@ -6,9 +6,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Uczniowie</h1>
-    <a asp-action="Create" class="btn btn-primary shadow-sm">
-        <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Dodaj ucznia
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-primary shadow-sm">
+            <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Dodaj ucznia
+        </a>
+    }
 </div>
 
 <div class="card shadow mb-4 border-left-info" style="border-left: 4px solid var(--info-color);">
@@ -51,12 +54,20 @@
                                 </span>
                             </td>
                             <td class="text-end">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm">
-                                    <i class="fas fa-pen"></i> Edytuj
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary shadow-sm ms-1">
-                                    Profil
-                                </a>
+                                <div class="btn-group">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary shadow-sm" title="Edytuj">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                    }
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary shadow-sm ms-1" title="Profil">
+                                            <i class="fas fa-id-card"></i> Profil
+                                        </a>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

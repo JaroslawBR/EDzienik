@@ -6,9 +6,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Klasy</h1>
-    <a asp-action="Create" class="btn btn-info text-white shadow-sm">
-        <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj nową klasę
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-info text-white shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50 me-1"></i> Dodaj nową klasę
+        </a>
+    }
 </div>
 
 <div class="card shadow mb-4 border-left-info" style="border-left: 4px solid var(--info-color);">
@@ -38,14 +41,17 @@
                                 <i class="far fa-calendar-check me-1"></i> @Html.DisplayFor(modelItem => item.SchoolYear)
                             </td>
                             <td class="text-end">
-                                <div class="btn-group">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Edytuj">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </div>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Edytuj">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                }
                             </td>
                         </tr>
                     }
