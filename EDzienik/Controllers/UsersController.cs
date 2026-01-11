@@ -21,21 +21,47 @@ namespace EDzienik.Controllers
             _roleManager = roleManager;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string roleFilter)
         {
-            var users = await _userManager.Users.ToListAsync();
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["CurrentRole"] = roleFilter;
+
+            ViewBag.Roles = new SelectList(new List<string> { "Student", "Teacher", "Admin" }, roleFilter);
+
+            var usersQuery = _userManager.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                usersQuery = usersQuery.Where(u => u.Email.Contains(searchString) ||
+                                                   u.FirstName.Contains(searchString) ||
+                                                   u.LastName.Contains(searchString));
+            }
+
+            var users = await usersQuery.ToListAsync();
             var userRolesViewModel = new List<UserRolesViewModel>();
 
             foreach (var user in users)
             {
+                var roles = await _userManager.GetRolesAsync(user);
+
+       
+                if (!string.IsNullOrEmpty(roleFilter))
+                {
+                    if (!roles.Contains(roleFilter))
+                    {
+                        continue; 
+                    }
+                }
+
                 var thisViewModel = new UserRolesViewModel();
                 thisViewModel.UserId = user.Id;
                 thisViewModel.Email = user.Email;
                 thisViewModel.FirstName = user.FirstName;
                 thisViewModel.LastName = user.LastName;
-                thisViewModel.Roles = await _userManager.GetRolesAsync(user);
+                thisViewModel.Roles = roles;
                 userRolesViewModel.Add(thisViewModel);
             }
+
             return View(userRolesViewModel);
         }
 

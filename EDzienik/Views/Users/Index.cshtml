@@ -10,6 +10,7 @@
         <i class="fas fa-user-plus me-1"></i> Utwórz konto
     </a>
 </div>
+
 @if (TempData["Error"] is string error)
 {
     <div class="alert alert-danger" role="alert">@error</div>
@@ -20,7 +21,31 @@
     <div class="alert alert-success" role="alert">@success</div>
 }
 
-
+<div class="card mb-4 shadow-sm border-left-info" style="border-left: 4px solid #36b9cc;">
+    <div class="card-body py-3">
+        <form asp-action="Index" method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-gray-400"></i></span>
+                    <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control border-start-0" placeholder="Szukaj: imię, nazwisko, email..." />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="roleFilter" class="form-select" asp-items="@(new SelectList(new List<string> { "Student", "Teacher", "Admin" }, ViewData["CurrentRole"]))">
+                    <option value="">-- Wszystkie role --</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100 text-white">
+                    <i class="fas fa-filter me-1"></i> Filtruj
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary w-100">Wyczyść</a>
+            </div>
+        </form>
+    </div>
+</div>
 <div class="card shadow mb-4 border-left-primary" style="border-left: 4px solid var(--primary-color);">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Lista Kont i Uprawnienia</h6>
@@ -69,7 +94,6 @@
                             </td>
                             <td class="text-end">
                                 <div class="d-flex justify-content-end align-items-center gap-2">
-
                                     <a asp-action="Edit"
                                        asp-route-id="@user.UserId"
                                        class="btn btn-sm btn-outline-warning">
@@ -83,9 +107,8 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
-
                                 </div>
-                            </td>                            
+                            </td>
                         </tr>
                     }
                 </tbody>
