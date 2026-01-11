@@ -1,7 +1,18 @@
 ﻿@model EDzienik.Entities.SchoolEvent
+@using EDzienik.Entities
 
 @{
     ViewData["Title"] = "Nowe wydarzenie";
+    bool isAdmin = User.IsInRole("Admin");
+
+    // TWORZENIE LISTY OPCJI PO POLSKU W WIDOKU
+    // Nie ruszamy pliku Entity, definiujemy nazwy tutaj
+    var eventTypes = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Announcement", Text = "Ogłoszenie" },
+        new SelectListItem { Value = "Exam", Text = "Egzamin / Sprawdzian" },
+        new SelectListItem { Value = "Homework", Text = "Zadanie domowe" }
+    };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,41 +27,55 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Title" class="form-label fw-bold">Tytuł</label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Content" class="form-label fw-bold">Treść / Opis</label>
-                <textarea asp-for="Content" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Date" class="form-label fw-bold">Data</label>
-                    <input asp-for="Date" class="form-control" type="datetime-local" />
-                    <span asp-validation-for="Date" class="text-danger"></span>
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Title" class="form-label fw-bold">Tytuł</label>
+                    <input asp-for="Title" class="form-control" placeholder="np. Sprawdzian z matematyki" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label asp-for="Type" class="form-label fw-bold">Typ wydarzenia</label>
-                    <select asp-for="Type" class="form-control"></select>
+
+                    @* Używamy przygotowanej wyżej listy eventTypes *@
+                    <select asp-for="Type" class="form-control" asp-items="eventTypes"></select>
+
                     <span asp-validation-for="Type" class="text-danger"></span>
                 </div>
             </div>
 
+            <div class="form-group mb-3">
+                <label asp-for="Content" class="form-label fw-bold">Treść / Opis</label>
+                <textarea asp-for="Content" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="SchoolClassId" class="form-label fw-bold">Dla klasy (opcjonalne)</label>
-                    <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId">
-                        <option value="">-- Wszyscy --</option>
-                    </select>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Date" class="form-label fw-bold">Data i godzina</label>
+                    <input asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
                 </div>
-                <div class="col-md-6 mb-3">
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="SchoolClassId" class="form-label fw-bold">Dla klasy</label>
+                    <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId">
+                        <option value="">-- Wydarzenie ogólnoszkolne --</option>
+                    </select>
+                    <span asp-validation-for="SchoolClassId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
                     <label asp-for="TeacherId" class="form-label fw-bold">Organizator</label>
-                    <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+
+                    @if (isAdmin)
+                    {
+                        <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.OrganizerId"></select>
+                    }
+                    else
+                    {
+                        <input type="text" class="form-control" value="Ty (zostanie przypisane automatycznie)" disabled readonly />
+                    }
+                    <span asp-validation-for="TeacherId" class="text-danger"></span>
                 </div>
             </div>
 

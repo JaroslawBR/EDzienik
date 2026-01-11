@@ -193,25 +193,78 @@ namespace EDzienik.Controllers
                 return NotFound();
             }
 
-            var grade = await _context.Grades.FindAsync(id);
+            var grade = await _context.Grades
+                .Include(g => g.Student).ThenInclude(s => s.User)
+                .Include(g => g.Student).ThenInclude(s => s.SchoolClass)
+                .Include(g => g.Subject)
+                .Include(g => g.Teacher).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (grade == null)
             {
                 return NotFound();
             }
 
-            if (!User.IsInRole("Admin"))
+            if (User.IsInRole("Admin"))
+            {
+                ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
+
+                var allStudents = await _context.Students
+                    .Include(s => s.User).Include(s => s.SchoolClass)
+                    .Select(s => new { Id = s.Id, FullName = $"{s.User.LastName} {s.User.FirstName} ({s.SchoolClass.Name})" })
+                    .ToListAsync();
+                ViewData["StudentId"] = new SelectList(allStudents, "Id", "FullName", grade.StudentId);
+
+                var allTeachers = await _context.Teachers.Include(t => t.User)
+                    .Select(t => new { Id = t.Id, FullName = $"{t.User.LastName} {t.User.FirstName}" })
+                    .ToListAsync();
+                ViewData["TeacherId"] = new SelectList(allTeachers, "Id", "FullName", grade.TeacherId);
+            }
+            else
             {
                 var teacher = await GetLoggedTeacherAsync();
+
                 if (teacher == null || grade.TeacherId != teacher.Id)
                 {
                     return Forbid();
                 }
+
+                var mySubjects = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Include(sa => sa.Subject)
+                    .Select(sa => sa.Subject)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!mySubjects.Any(s => s.Id == grade.SubjectId))
+                {
+                    mySubjects.Add(grade.Subject);
+                }
+
+                var myClassIds = await _context.SubjectAssignments
+                    .Where(sa => sa.TeacherId == teacher.Id)
+                    .Select(sa => sa.SchoolClassId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var myStudents = await _context.Students
+                    .Include(s => s.User)
+                    .Include(s => s.SchoolClass)
+                    .Where(s => myClassIds.Contains(s.SchoolClassId) || s.Id == grade.StudentId)
+                    .OrderBy(s => s.SchoolClass.Name)
+                    .ThenBy(s => s.User.LastName)
+                    .Select(s => new
+                    {
+                        Id = s.Id,
+                        FullName = $"{s.User.LastName} {s.User.FirstName} (klasa {s.SchoolClass.Name})"
+                    })
+                    .ToListAsync();
+
+                ViewData["SubjectId"] = new SelectList(mySubjects, "Id", "Name", grade.SubjectId);
+                ViewData["StudentId"] = new SelectList(myStudents, "Id", "FullName", grade.StudentId);
+
             }
 
-
-            ViewData["StudentId"] = new SelectList(_context.Students, "Id", "UserId", grade.StudentId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);
             return View(grade);
         }
 
@@ -227,11 +280,13 @@ namespace EDzienik.Controllers
                 return NotFound();
             }
 
+            var teacher = await GetLoggedTeacherAsync();
+
             if (!User.IsInRole("Admin"))
             {
-                var teacher = await GetLoggedTeacherAsync();
 
                 var originalGrade = await _context.Grades.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
+
                 if (originalGrade == null || teacher == null || originalGrade.TeacherId != teacher.Id)
                 {
                     return Forbid();
@@ -249,10 +304,19 @@ namespace EDzienik.Controllers
 
                     if (!hasAssignment)
                     {
-                        ModelState.AddModelError("", "Nie uczysz tego ucznia wybranego przedmiotu (brak przypisania).");
+ 
                     }
                 }
             }
+
+            if (grade.Value < 1 || grade.Value > 6)
+            {
+                ModelState.AddModelError("Value", "Ocena musi być z zakresu 1-6.");
+            }
+
+            ModelState.Remove("Student");
+            ModelState.Remove("Subject");
+            ModelState.Remove("Teacher");
 
             if (ModelState.IsValid)
             {
@@ -263,21 +327,26 @@ namespace EDzienik.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GradeExists(grade.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!GradeExists(grade.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["StudentId"] = new SelectList(_context.Students.Include(s => s.User), "Id", "User.LastName", grade.StudentId);
-            ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", grade.TeacherId);
+    
+            if (User.IsInRole("Admin"))
+            {
+                ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
+                ViewData["StudentId"] = new SelectList(_context.Students.Include(s => s.User).Select(s => new { Id = s.Id, Fn = $"{s.User.LastName}" }), "Id", "Fn", grade.StudentId);
+                ViewData["TeacherId"] = new SelectList(_context.Teachers.Include(t => t.User).Select(t => new { Id = t.Id, Fn = $"{t.User.LastName}" }), "Id", "Fn", grade.TeacherId);
+            }
+            else
+            {
+         
+                ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", grade.SubjectId);
+                ViewData["StudentId"] = new SelectList(_context.Students.Include(s => s.User).Select(s => new { Id = s.Id, Fn = $"{s.User.LastName}" }), "Id", "Fn", grade.StudentId);
+            }
+
             return View(grade);
         }
 

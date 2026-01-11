@@ -1,7 +1,9 @@
 ﻿@model EDzienik.Entities.SchoolEvent
+@using EDzienik.Entities
 
 @{
     ViewData["Title"] = "Edycja wydarzenia";
+    bool isAdmin = User.IsInRole("Admin");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,42 +19,60 @@
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             <input type="hidden" asp-for="Id" />
 
-            <div class="form-group mb-3">
-                <label asp-for="Title" class="form-label fw-bold">Tytuł</label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Content" class="form-label fw-bold">Treść / Opis</label>
-                <textarea asp-for="Content" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
+            @* Ważne: Przesyłamy ID nauczyciela, aby nie zostało wyzerowane, jeśli pole jest disabled *@
+            @if (!isAdmin)
+            {
+                <input type="hidden" asp-for="TeacherId" />
+            }
 
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Date" class="form-label fw-bold">Data</label>
-                    <input asp-for="Date" class="form-control" />
-                    <span asp-validation-for="Date" class="text-danger"></span>
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Title" class="form-label fw-bold">Tytuł</label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
                     <label asp-for="Type" class="form-label fw-bold">Typ wydarzenia</label>
-                    <select asp-for="Type" class="form-control"></select>
+                    @* Pobieramy listę z Enuma, który teraz ma polskie tłumaczenia *@
+                    <select asp-for="Type" class="form-control" asp-items="Html.GetEnumSelectList<EventType>()"></select>
                     <span asp-validation-for="Type" class="text-danger"></span>
                 </div>
             </div>
 
+            <div class="form-group mb-3">
+                <label asp-for="Content" class="form-label fw-bold">Treść / Opis</label>
+                <textarea asp-for="Content" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Date" class="form-label fw-bold">Data i godzina</label>
+                    <input asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
                     <label asp-for="SchoolClassId" class="form-label fw-bold">Dla klasy</label>
                     <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId">
-                        <option value="">-- Wszyscy --</option>
+                        <option value="">-- Wydarzenie ogólnoszkolne --</option>
                     </select>
                     <span asp-validation-for="SchoolClassId" class="text-danger"></span>
                 </div>
-                <div class="col-md-6 mb-3">
+
+                <div class="col-md-4 mb-3">
                     <label asp-for="TeacherId" class="form-label fw-bold">Organizator</label>
-                    <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                    @if (isAdmin)
+                    {
+                        <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                    }
+                    else
+                    {
+                        @* Wyświetlamy tylko imię/nazwisko *@
+                        <input type="text" class="form-control"
+                               value="@(Model.Teacher?.User?.FirstName + " " + Model.Teacher?.User?.LastName)"
+                               disabled readonly />
+                    }
                     <span asp-validation-for="TeacherId" class="text-danger"></span>
                 </div>
             </div>
@@ -63,8 +83,8 @@
                 <a asp-action="Index" class="btn btn-secondary me-2">
                     <i class="fas fa-arrow-left me-1"></i> Powrót
                 </a>
-                <button type="submit" class="btn btn-primary shadow-sm">
-                    <i class="fas fa-save me-1"></i> Zapisz
+                <button type="submit" class="btn btn-warning shadow-sm">
+                    <i class="fas fa-save me-1"></i> Zapisz zmiany
                 </button>
             </div>
         </form>

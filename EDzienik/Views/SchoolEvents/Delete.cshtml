@@ -4,31 +4,64 @@
     ViewData["Title"] = "Usuń wydarzenie";
 }
 
-<div class="d-flex justify-content-center mt-5">
+<div class="d-flex justify-content-center mt-4">
     <div class="col-md-8">
         <div class="card shadow border-left-danger">
-            <div class="card-header bg-danger text-white py-3">
+            <div class="card-header bg-danger text-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="m-0 fw-bold">Odwołaj wydarzenie</h5>
+                <i class="fas fa-exclamation-triangle fa-lg"></i>
             </div>
             <div class="card-body">
-                <h3 class="card-title text-dark">@Html.DisplayFor(model => model.Title)</h3>
-                <h6 class="card-subtitle mb-3 text-muted">
-                    <i class="far fa-calendar-alt me-1"></i> @Html.DisplayFor(model => model.Date)
-                </h6>
 
-                <p class="card-text bg-light p-3 rounded border">
-                    @Html.DisplayFor(model => model.Content)
-                </p>
-
-                <div class="alert alert-warning">
-                    Czy na pewno chcesz usunąć to wydarzenie z kalendarza szkolnego?
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-gray-800">@Html.DisplayFor(model => model.Title)</h3>
+                    <div class="text-muted">
+                        <i class="far fa-calendar-alt me-1"></i> @Model.Date.ToString("dd.MM.yyyy HH:mm")
+                        <span class="mx-2">|</span>
+                        @Html.DisplayFor(model => model.Type)
+                    </div>
                 </div>
 
-                <form asp-action="Delete" class="text-end">
+                <div class="bg-light p-4 rounded border mb-4">
+                    <h6 class="fw-bold text-uppercase small text-gray-500 mb-2">Treść / Opis</h6>
+                    <p class="mb-0 text-dark">
+                        @if (!string.IsNullOrEmpty(Model.Content))
+                        {
+                            @Html.DisplayFor(model => model.Content)
+                        }
+                        else
+                        {
+                            <em class="text-muted">Brak dodatkowego opisu.</em>
+                        }
+                    </p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <small class="text-uppercase text-gray-500 fw-bold">Klasa</small>
+                        <div class="fw-bold">
+                            @(Model.SchoolClass != null ? Model.SchoolClass.Name : "Cała szkoła")
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-uppercase text-gray-500 fw-bold">Organizator</small>
+                        <div class="fw-bold">
+                            @(Model.Teacher?.User?.FirstName) @(Model.Teacher?.User?.LastName)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning text-center" role="alert">
+                    <strong>Uwaga!</strong> Czy na pewno chcesz trwale usunąć to wydarzenie? Operacji nie można cofnąć.
+                </div>
+
+                <form asp-action="Delete" class="d-flex justify-content-center">
                     <input type="hidden" asp-for="Id" />
-                    <a asp-action="Index" class="btn btn-secondary me-2">Anuluj</a>
+                    <a asp-action="Index" class="btn btn-secondary me-2">
+                        <i class="fas fa-times me-1"></i> Anuluj
+                    </a>
                     <button type="submit" class="btn btn-danger shadow-sm">
-                        <i class="fas fa-trash-alt me-1"></i> Usuń wydarzenie
+                        <i class="fas fa-trash me-1"></i> Usuń wydarzenie
                     </button>
                 </form>
             </div>

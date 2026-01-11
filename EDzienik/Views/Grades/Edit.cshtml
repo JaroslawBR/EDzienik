@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Edycja oceny";
+    // Sprawdzamy czy użytkownik jest adminem
+    bool isAdmin = User.IsInRole("Admin");
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -20,7 +22,15 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="SubjectId" class="form-label small text-uppercase fw-bold text-muted">Przedmiot</label>
-                    <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    @if (isAdmin)
+                    {
+                        <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    }
+                    else
+                    {
+                        @* Nauczyciel może zmienić przedmiot tylko w obrębie swoich uprawnień, ale bezpieczniej jest pokazać select z ograniczoną listą *@
+                        <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    }
                     <span asp-validation-for="SubjectId" class="text-danger"></span>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -46,12 +56,34 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="TeacherId" class="form-label small text-muted">Wystawił (Nauczyciel)</label>
-                    <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+
+                    @if (isAdmin)
+                    {
+                        @* Admin może zmienić nauczyciela *@
+                        <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                    }
+                    else
+                    {
+                        @* Nauczyciel widzi swoje nazwisko, ale nie może go zmienić *@
+
+                        @* Pole input tylko do wyświetlenia (disabled nie jest wysyłane w POST) *@
+                        <input type="text" class="form-control"
+                               value="@(Model.Teacher?.User?.FirstName + " " + Model.Teacher?.User?.LastName)"
+                               disabled readonly />
+
+                        @* Ukryte pole, aby przekazać ID do modelu (dla formalności walidacji) *@
+                        <input type="hidden" asp-for="TeacherId" />
+                    }
+
                     <span asp-validation-for="TeacherId" class="text-danger"></span>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label asp-for="CreatedUnix" class="form-label small text-muted">Timestamp (Unix)</label>
-                    <input asp-for="CreatedUnix" class="form-control" readonly />
+                    <label asp-for="CreatedUnix" class="form-label small text-muted">Data utworzenia</label>
+                    @* Konwersja Unix timestamp na czytelną datę tylko do odczytu *@
+                    <input type="text" class="form-control" value="@DateTimeOffset.FromUnixTimeSeconds(Model.CreatedUnix).LocalDateTime.ToString("yyyy-MM-dd HH:mm")" readonly disabled />
+
+                    @* Musimy przesłać oryginalny CreatedUnix z powrotem *@
+                    <input type="hidden" asp-for="CreatedUnix" />
                     <span asp-validation-for="CreatedUnix" class="text-danger"></span>
                 </div>
             </div>
@@ -63,7 +95,7 @@
                     <i class="fas fa-arrow-left me-1"></i> Powrót
                 </a>
                 <button type="submit" class="btn btn-warning shadow-sm">
-                    <i class="fas fa-save me-1"></i> Zapisz
+                    <i class="fas fa-save me-1"></i> Zapisz zmiany
                 </button>
             </div>
         </form>
