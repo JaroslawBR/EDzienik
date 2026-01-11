@@ -87,6 +87,14 @@ namespace EDzienik.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+            // --- DODAJ TEN FRAGMENT NA POCZĄTKU ---
+            if (User.Identity.IsAuthenticated)
+            {
+                Response.Redirect("/");
+                return;
+            }
+            // --------------------------------------
+
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 ModelState.AddModelError(string.Empty, ErrorMessage);
