@@ -35,7 +35,7 @@ namespace EDzienik.Controllers
 
             var schoolClass = await _context.SchoolClasses
                 .Include(c => c.Students)
-                .ThenInclude(s => s.User) 
+                .ThenInclude(s => s.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (schoolClass == null)
@@ -57,7 +57,7 @@ namespace EDzienik.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Id,Name")] SchoolClass schoolClass)
+        public async Task<IActionResult> Create([Bind("Id,Name,SchoolYear")] SchoolClass schoolClass)
         {
             if (ModelState.IsValid)
             {
@@ -89,7 +89,7 @@ namespace EDzienik.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] SchoolClass schoolClass)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,SchoolYear")] SchoolClass schoolClass)
         {
             if (id != schoolClass.Id)
             {
