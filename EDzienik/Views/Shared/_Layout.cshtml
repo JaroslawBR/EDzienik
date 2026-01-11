@@ -19,10 +19,12 @@
                 <a class="navbar-brand fw-bold text-primary" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-graduation-cap me-2"></i>EDziennik
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
@@ -33,30 +35,27 @@
 
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-dark" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-cogs me-1 text-secondary"></i> Administracja
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Users" asp-action="Index">
+                                    <i class="fas fa-users me-1 text-primary"></i> Zarządzanie użtkownikami
                                 </a>
-                                <ul class="dropdown-menu shadow border-0" aria-labelledby="adminDropdown">
-                                    <li><h6 class="dropdown-header text-uppercase small fw-bold text-gray-500">Użytkownicy</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="Users" asp-action="Index"><i class="fas fa-users fa-fw me-2 text-primary"></i>Konta</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Teachers" asp-action="Index"><i class="fas fa-chalkboard-teacher fa-fw me-2 text-info"></i>Nauczyciele</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Students" asp-action="Index"><i class="fas fa-user-graduate fa-fw me-2 text-success"></i>Uczniowie</a></li>
-
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header text-uppercase small fw-bold text-gray-500">Szkoła</h6></li>
-
-                                    <li><a class="dropdown-item" asp-controller="SchoolClasses" asp-action="Index"><i class="fas fa-layer-group fa-fw me-2 text-warning"></i>Klasy</a></li>
-                                    <li><a class="dropdown-item" asp-controller="Subjects" asp-action="Index"><i class="fas fa-book fa-fw me-2 text-danger"></i>Przedmioty</a></li>
-                                    <li><a class="dropdown-item" asp-controller="SubjectAssignments" asp-action="Index"><i class="fas fa-link fa-fw me-2 text-secondary"></i>Przydziały</a></li>
-                                    <li><a class="dropdown-item" asp-controller="ScheduleSlots" asp-action="Index"><i class="fas fa-calendar-alt fa-fw me-2 text-dark"></i>Plan Lekcji</a></li>
-                                </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="SchoolEvents" asp-action="Index">
-                                    <i class="fas fa-bullhorn me-1 text-secondary"></i> Wydarzenia
+                                <a class="nav-link text-dark" asp-controller="Subjects" asp-action="Index">
+                                    <i class="fas fa-book me-1 text-danger"></i> Przedmioty
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="SubjectAssignments" asp-action="Index">
+                                    <i class="fas fa-link me-1 text-secondary"></i> Przydziały
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="ScheduleSlots" asp-action="Index">
+                                    <i class="fas fa-calendar-alt me-1 text-dark"></i> Plan lekcji
+                                </a>
+                            </li>
+
                         }
 
                         @if (User.IsInRole("Teacher"))
@@ -111,13 +110,14 @@
                                 </a>
                             </li>
                         }
-
                     </ul>
+
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container mb-5">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -129,6 +129,7 @@
             &copy; 2026 - <strong>EDziennik</strong> - System zarządzania szkołą
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
