@@ -1,64 +1,91 @@
 ﻿@model EDzienik.Models.ScheduleSlotViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nowy wpis w planie";
 }
 
-<h1>Dodaj zajęcia do planu</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Nowa lekcja</h1>
+</div>
 
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow mb-4 border-left-success">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-success">Szczegóły zajęć</h6>
+    </div>
+    <div class="card-body">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-            <div class="form-group">
-                <label asp-for="DayOfWeek" class="control-label"></label>
-                <select asp-for="DayOfWeek" class="form-control" asp-items="Html.GetEnumSelectList<DayOfWeek>()"></select>
-                <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-5 border-end">
+                    <h5 class="text-muted mb-3"><i class="far fa-clock me-2"></i>Czas i Miejsce</h5>
+
+                    <div class="mb-3">
+                        <label asp-for="DayOfWeek" class="form-label fw-bold">Dzień tygodnia</label>
+                        <select asp-for="DayOfWeek" class="form-control">
+                            <option value="Monday">Poniedziałek</option>
+                            <option value="Tuesday">Wtorek</option>
+                            <option value="Wednesday">Środa</option>
+                            <option value="Thursday">Czwartek</option>
+                            <option value="Friday">Piątek</option>
+                            <option value="Saturday">Sobota</option>
+                            <option value="Sunday">Niedziela</option>
+                        </select>
+                        <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label asp-for="StartTime" class="form-label fw-bold">Początek</label>
+                            <input asp-for="StartTime" class="form-control" type="time" />
+                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label asp-for="EndTime" class="form-label fw-bold">Koniec</label>
+                            <input asp-for="EndTime" class="form-control" type="time" />
+                            <span asp-validation-for="EndTime" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Room" class="form-label fw-bold">Sala lekcyjna</label>
+                        <input asp-for="Room" class="form-control" placeholder="np. 102, Gimnastyczna" />
+                        <span asp-validation-for="Room" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-7 ps-md-4">
+                    <h5 class="text-muted mb-3"><i class="fas fa-link me-2"></i>Przydział</h5>
+
+                    <div class="mb-3">
+                        <label asp-for="SubjectId" class="form-label fw-bold">Przedmiot</label>
+                        <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SchoolClassId" class="form-label fw-bold">Klasa</label>
+                        <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TeacherId" class="form-label fw-bold">Nauczyciel prowadzący</label>
+                        <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label">Godzina rozpoczęcia</label>
-                <input asp-for="StartTime" class="form-control" type="datetime-local" />
-                <span asp-validation-for="StartTime" class="text-danger"></span>
-            </div>
+            <hr class="my-4" />
 
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label">Godzina zakończenia</label>
-                <input asp-for="EndTime" class="form-control" type="datetime-local" />
-                <span asp-validation-for="EndTime" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Room" class="control-label"></label>
-                <input asp-for="Room" class="form-control" />
-                <span asp-validation-for="Room" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="SchoolClassId" class="control-label"></label>
-                <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="SubjectId" class="control-label"></label>
-                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TeacherId" class="control-label"></label>
-                <select asp-for="TeacherId" class="form-control" asp-items="ViewBag.TeacherId"></select>
-                <span asp-validation-for="TeacherId" class="text-danger"></span>
-            </div>
-
-            <br />
-            <div class="form-group">
-                <input type="submit" value="Dodaj do planu" class="btn btn-primary" />
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i> Powrót
+                </a>
+                <button type="submit" class="btn btn-success shadow-sm">
+                    <i class="fas fa-plus me-1"></i> Dodaj do planu
+                </button>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Powrót do listy</a>
 </div>
 
 @section Scripts {

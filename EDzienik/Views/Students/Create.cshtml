@@ -4,28 +4,45 @@
     ViewData["Title"] = "Dodaj ucznia";
 }
 
-<h1>Dodaj ucznia</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dodaj ucznia</h1>
+</div>
 
-<h4>Przypisz użytkownika do klasy</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
+<div class="card shadow mb-4 border-left-info">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-info">Przypisz użytkownika do klasy</h6>
+    </div>
+    <div class="card-body">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Użytkownik</label>
-                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small text-uppercase fw-bold text-muted">Użytkownik</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-user text-gray-400"></i></span>
+                        <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small text-uppercase fw-bold text-muted">Klasa</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fas fa-layer-group text-gray-400"></i></span>
+                        <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Klasa</label>
-                <select asp-for="SchoolClassId" class="form-control" asp-items="ViewBag.SchoolClassId"></select>
-            </div>
+            <hr class="my-4" />
 
-            <div class="form-group">
-                <input type="submit" value="Dodaj" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i> Powrót
+                </a>
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-plus me-1"></i> Dodaj ucznia
+                </button>
             </div>
         </form>
     </div>

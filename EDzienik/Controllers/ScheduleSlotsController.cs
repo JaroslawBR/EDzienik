@@ -175,7 +175,16 @@ namespace EDzienik.Controllers
             }
             ViewData["SchoolClassId"] = new SelectList(_context.SchoolClasses, "Id", "Name", scheduleSlot.SchoolClassId);
             ViewData["SubjectId"] = new SelectList(_context.Subjects, "Id", "Name", scheduleSlot.SubjectId);
-            ViewData["TeacherId"] = new SelectList(_context.Teachers, "Id", "UserId", scheduleSlot.TeacherId);
+            
+            var teachers = _context.Teachers
+                .Include(t => t.User)
+                .Select(t => new {
+                    Id = t.Id,
+                    FullName = t.User.FirstName + " " + t.User.LastName + " (" + t.User.Email + ")"
+                })
+                .ToList();
+            ViewData["TeacherId"] = new SelectList(teachers, "Id", "FullName", scheduleSlot.TeacherId);
+
             return View(scheduleSlot);
         }
 

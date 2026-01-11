@@ -6,9 +6,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Przedmioty</h1>
-    <a asp-action="Create" class="btn btn-warning text-dark shadow-sm">
-        <i class="fas fa-plus fa-sm text-dark-50 me-1"></i> Dodaj przedmiot
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-action="Create" class="btn btn-warning text-dark shadow-sm">
+            <i class="fas fa-plus fa-sm text-dark-50 me-1"></i> Dodaj przedmiot
+        </a>
+    }
 </div>
 
 <div class="card shadow mb-4 border-left-warning" style="border-left: 4px solid var(--warning-color);">
@@ -33,9 +36,17 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group">
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary"><i class="fas fa-pen"></i></a>
-                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info"><i class="fas fa-info"></i></a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edytuj"><i class="fas fa-pen"></i></a>
+                                }
+
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Szczegóły"><i class="fas fa-info"></i></a>
+
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Usuń"><i class="fas fa-times"></i></a>
+                                }
                             </div>
                         </td>
                     </tr>

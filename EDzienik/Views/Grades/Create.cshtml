@@ -4,39 +4,51 @@
     ViewData["Title"] = "Wystaw ocenę";
 }
 
-<h1>Wystaw ocenę</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Wystaw nową ocenę</h1>
+</div>
 
-<hr />
-<div class="row">
-    <div class="col-md-6">
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Formularz oceny</h6>
+    </div>
+    <div class="card-body">
         <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Przedmiot</label>
-                <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small text-uppercase fw-bold text-muted">Przedmiot</label>
+                    <select asp-for="SubjectId" class="form-control" asp-items="ViewBag.SubjectId"></select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label small text-uppercase fw-bold text-muted">Uczeń</label>
+                    <select asp-for="StudentId" class="form-control" asp-items="ViewBag.StudentId"></select>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label class="control-label">Uczeń</label>
-                <select asp-for="StudentId" class="form-control" asp-items="ViewBag.StudentId"></select>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Value" class="form-label fw-bold">Ocena</label>
+                    <input asp-for="Value" type="number" min="1" max="6" class="form-control" placeholder="1-6" />
+                    <span asp-validation-for="Value" class="text-danger"></span>
+                </div>
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Description" class="form-label fw-bold">Opis</label>
+                    <input asp-for="Description" class="form-control" placeholder="np. Sprawdzian, Kartkówka, Aktywność" />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Value" class="control-label">Ocena (1-6)</label>
-                <input asp-for="Value" type="number" min="1" max="6" class="form-control" />
-                <span asp-validation-for="Value" class="text-danger"></span>
-            </div>
+            <hr class="my-4" />
 
-            <div class="form-group mb-3">
-                <label asp-for="Description" class="control-label">Opis (np. Sprawdzian, Odpowiedź)</label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Wystaw" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Powrót</a>
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i> Powrót
+                </a>
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-check me-1"></i> Wystaw ocenę
+                </button>
             </div>
         </form>
     </div>

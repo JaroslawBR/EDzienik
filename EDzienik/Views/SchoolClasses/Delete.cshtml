@@ -1,32 +1,37 @@
 ﻿@model EDzienik.Entities.SchoolClass
 
 @{
-    ViewData["Title"] = "Usuwanie klasy";
+    ViewData["Title"] = "Usuń klasę";
 }
 
-<h1>Usuwanie klasy</h1>
+<div class="d-flex justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-left-danger">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="m-0 fw-bold">Usuwanie Klasy</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4 text-end">Nazwa klasy:</dt>
+                    <dd class="col-sm-8 fw-bold fs-5">@Html.DisplayFor(model => model.Name)</dd>
 
-<h3>Czy na pewno chcesz usunąć tę klasę?</h3>
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            Nazwa
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class="col-sm-2">
-            Rok szkolny
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.SchoolYear)
-        </dd>
-    </dl>
+                    <dt class="col-sm-4 text-end">Rok szkolny:</dt>
+                    <dd class="col-sm-8">@Html.DisplayFor(model => model.SchoolYear)</dd>
+                </dl>
 
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Usuń" class="btn btn-danger" />
-        <a asp-action="Index" class="btn btn-secondary">Powrót</a>
-    </form>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Usunięcie klasy spowoduje odpięcie od niej wszystkich uczniów!
+                </div>
+
+                <form asp-action="Delete" class="text-end mt-4">
+                    <input type="hidden" asp-for="Id" />
+                    <a asp-action="Index" class="btn btn-secondary me-2">Powrót</a>
+                    <button type="submit" class="btn btn-danger shadow-sm">
+                        <i class="fas fa-trash me-1"></i> Potwierdź usunięcie
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
