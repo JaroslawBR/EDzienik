@@ -88,7 +88,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Wyst¹pi³ b³¹d podczas tworzenia/migracji bazy danych.");
+        logger.LogError(ex, "Wyst¹pi³ b³¹d podczas tworzenia/migracji bazy danych .");
     }
 }
 
